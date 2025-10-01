@@ -81,11 +81,17 @@ export default function BookDetail() {
 
     try {
       const newStatus = !isDownloaded;
+      console.log('Toggling download status:', { bookId: book.id, newStatus });
+
       const res = await fetch('/api/download-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bookId: book.id, status: newStatus }),
       });
+
+      console.log('Response status:', res.status);
+      const data = await res.json();
+      console.log('Response data:', data);
 
       if (res.ok) {
         // Update local state
@@ -95,6 +101,10 @@ export default function BookDetail() {
             ? [...user.downloadedBooks, book.id]
             : user.downloadedBooks.filter(id => id !== book.id)
         });
+        console.log('State updated successfully');
+      } else {
+        console.error('Failed to update status:', data);
+        alert(`상태 업데이트에 실패했습니다: ${data.error || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('Toggle error:', error);
