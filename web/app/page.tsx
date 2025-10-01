@@ -194,6 +194,13 @@ export default function Home() {
             <h1 className="text-xl md:text-3xl font-bold text-gray-900">✨ Dream Library</h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
+            <Link
+              href="/eink"
+              className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors shadow-sm whitespace-nowrap"
+              title="E-ink 리더기 최적화 모드"
+            >
+              📖 E-Reader
+            </Link>
             {user ? (
               <>
                 <span className="text-sm md:text-base text-gray-700 hidden sm:inline">

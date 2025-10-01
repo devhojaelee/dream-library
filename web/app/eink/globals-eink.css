@@ -1,0 +1,133 @@
+/* E-ink Display Optimized Styles */
+
+/* Disable all animations and transitions */
+*,
+*::before,
+*::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* High contrast black and white */
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Remove all gradients and shadows */
+* {
+  background-image: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* E-ink optimized button */
+.eink-button {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  min-height: 48px;
+  min-width: 48px;
+  font-size: 18px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.eink-button:active {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* E-ink optimized primary button */
+.eink-button-primary {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #000000;
+  min-height: 48px;
+  min-width: 48px;
+  font-size: 18px;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.eink-button-primary:active {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* High contrast links */
+a {
+  color: #000000;
+  text-decoration: underline;
+}
+
+/* Clear borders */
+.eink-border {
+  border: 2px solid #000000;
+}
+
+/* Grayscale images */
+img {
+  filter: grayscale(100%) contrast(1.2);
+}
+
+/* Large touch targets */
+button,
+a,
+input {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Clear text hierarchy */
+h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+p {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* Increased spacing */
+.eink-spacing {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Clear status indicators */
+.eink-badge {
+  background: #ffffff;
+  color: #000000;
+  border: 2px solid #000000;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.eink-badge-filled {
+  background: #000000;
+  color: #ffffff;
+  border: 2px solid #000000;
+  padding: 4px 12px;
+  font-weight: 600;
+  font-size: 16px;
+}
