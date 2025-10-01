@@ -10,6 +10,7 @@ services:
       - "3000:3000"
     volumes:
       - ./books:/books:ro  # Read-only mount for web server
+      - ./web/data:/app/data  # User data persistence
     environment:
       - NODE_ENV=production
       - BOOKS_DIR=/books
