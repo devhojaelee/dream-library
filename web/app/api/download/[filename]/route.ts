@@ -31,10 +31,12 @@ export async function GET(
     const fileBuffer = fs.readFileSync(filepath);
 
     // 다운로드 응답 반환
+    // Safari 호환을 위해 filename과 filename* 둘 다 제공
+    const encodedFilename = encodeURIComponent(filename);
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': 'application/epub+zip',
-        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+        'Content-Disposition': `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`,
       },
     });
   } catch (error) {
