@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60;
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: false, // Allow HTTP for local network
+      sameSite: 'lax',
       maxAge,
     });
 
