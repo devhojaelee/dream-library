@@ -145,23 +145,18 @@ def download_incremental():
                 if len(books_this_round) == 0:
                     print("No new books to download this round")
                 else:
-                    # Download books in batches of 5
-                    print(f"Starting download in batches of 5 for {len(books_this_round)} books...")
-                    batch_size = 5
+                    # Download books one by one
+                    print(f"Starting sequential download for {len(books_this_round)} books...\n")
 
-                    for batch_start in range(0, len(books_this_round), batch_size):
-                        batch = books_this_round[batch_start:batch_start + batch_size]
+                    idx = 0
+                    while idx < len(books_this_round):
+                        book = books_this_round[idx]
+                        title = book['title']
+                        href = book['href']
+
                         print(f"\n{'='*70}")
-                        print(f"BATCH {batch_start//batch_size + 1}: Processing {len(batch)} books")
+                        print(f"[{idx + 1}/{len(books_this_round)}] {title[:60]}")
                         print(f"{'='*70}")
-
-                        # Trigger downloads sequentially (but don't wait for completion)
-                        download_expectations = []
-                        for idx, book in enumerate(batch):
-                            title = book['title']
-                            href = book['href']
-
-                            print(f"\n[{batch_start + idx + 1}] {title[:60]}...")
 
                             try:
                                 book_url = f"https://z-library.ec{href}"
@@ -237,76 +232,53 @@ def download_incremental():
 
                                     print(f"  → Clicking EPUB...")
 
-                                    # Start download expectation BEFORE clicking
-                                    download_expectation = page.expect_download(timeout=90000)
-                                    epub_btn.click()
+                                    # Download with context manager
+                                    with page.expect_download(timeout=90000) as download_info:
+                                        epub_btn.click()
 
-                                    download_expectations.append({
-                                        'expectation': download_expectation,
-                                        'title': title,
-                                        'book_url': book_url,
-                                        'metadata': metadata,
-                                        'safe_title': safe_title,
-                                        'cover_src_url': cover_src_url,
-                                        'cover_ext': cover_ext
-                                    })
-                                    print(f"  → Download triggered")
+                                    download = download_info.value
+
+                                    # Save EPUB
+                                    filename = f"{safe_title[:100]}.epub"
+                                    filepath = f"./books/{filename}"
+
+                                    download.save_as(filepath)
+                                    filesize = os.path.getsize(filepath) / 1024 / 1024
+
+                                    # EPUB download succeeded - now save cover with matching filename
+                                    if cover_src_url:
+                                        try:
+                                            response = page.request.get(cover_src_url)
+                                            if response.ok:
+                                                # Use same safe_title as EPUB
+                                                cover_filename = f"{safe_title[:100]}.{cover_ext}"
+                                                cover_path = f"./books/covers/{cover_filename}"
+
+                                                with open(cover_path, 'wb') as f:
+                                                    f.write(response.body())
+
+                                                metadata['cover'] = cover_filename
+                                                print(f"    ✅ Cover saved: {cover_filename}")
+                                        except Exception as e:
+                                            print(f"    ⚠️ Cover download failed: {str(e)[:40]}")
+
+                                    # Save metadata JSON with same filename base
+                                    metadata['filename'] = filename
+                                    metadata['filesize'] = filesize
+
+                                    metadata_filename = f"{safe_title[:100]}.json"
+                                    metadata_path = f"./books/metadata/{metadata_filename}"
+                                    with open(metadata_path, 'w', encoding='utf-8') as f:
+                                        json.dump(metadata, f, ensure_ascii=False, indent=2)
+
+                                    downloaded_count += 1
+                                    downloaded_titles.add(title)
+                                    print(f"  ✅ {title[:50]} - {filesize:.1f} MB (Total: {downloaded_count})")
+                                    idx += 1
 
                                 else:
                                     print(f"  ❌ No EPUB button")
-
-                            except Exception as e:
-                                print(f"  ❌ Error triggering: {str(e)[:80]}")
-
-                        # Now wait for all downloads to complete
-                        print(f"\n⏳ Waiting for {len(download_expectations)} downloads to complete...")
-
-                        for de in download_expectations:
-                            try:
-                                # Wait for this download to complete
-                                download = de['expectation'].value
-                                title = de['title']
-                                metadata = de['metadata']
-                                safe_title = de['safe_title']
-                                cover_src_url = de['cover_src_url']
-                                cover_ext = de['cover_ext']
-
-                                # Save EPUB
-                                filename = f"{safe_title[:100]}.epub"
-                                filepath = f"./books/{filename}"
-
-                                download.save_as(filepath)
-                                filesize = os.path.getsize(filepath) / 1024 / 1024
-
-                                # EPUB download succeeded - now save cover with matching filename
-                                if cover_src_url:
-                                    try:
-                                        response = page.request.get(cover_src_url)
-                                        if response.ok:
-                                            # Use same safe_title as EPUB
-                                            cover_filename = f"{safe_title[:100]}.{cover_ext}"
-                                            cover_path = f"./books/covers/{cover_filename}"
-
-                                            with open(cover_path, 'wb') as f:
-                                                f.write(response.body())
-
-                                            metadata['cover'] = cover_filename
-                                            print(f"    ✅ Cover saved: {cover_filename}")
-                                    except Exception as e:
-                                        print(f"    ⚠️ Cover download failed: {str(e)[:40]}")
-
-                                # Save metadata JSON with same filename base
-                                metadata['filename'] = filename
-                                metadata['filesize'] = filesize
-
-                                metadata_filename = f"{safe_title[:100]}.json"
-                                metadata_path = f"./books/metadata/{metadata_filename}"
-                                with open(metadata_path, 'w', encoding='utf-8') as f:
-                                    json.dump(metadata, f, ensure_ascii=False, indent=2)
-
-                                downloaded_count += 1
-                                downloaded_titles.add(title)
-                                print(f"  ✅ {title[:50]} - {filesize:.1f} MB (Total: {downloaded_count})")
+                                    idx += 1
 
                             except Exception as e:
                                 # Check for download limit
@@ -343,10 +315,16 @@ def download_incremental():
                                     if total_wait_seconds > 0:
                                         print(f"  💤 Waiting {total_wait_seconds + 10}s...")
                                         time.sleep(total_wait_seconds + 10)
-                                        print(f"  ✅ Wait completed!")
-                                        raise Exception("Download limit reached")
+                                        print(f"  ✅ Wait completed! Retrying this book...")
+                                        # Don't increment idx, retry the same book
+                                        continue
+                                    else:
+                                        print(f"  ⚠️ Could not parse wait time, skipping...")
+                                        idx += 1
+                                        continue
 
-                                print(f"  ❌ Failed: {de['title'][:50]} - {str(e)[:50]}")
+                                print(f"  ❌ Failed: {title[:50]} - {str(e)[:50]}")
+                                idx += 1
 
                         # Return to main page
                         page.goto("https://z-library.ec/", timeout=60000)
