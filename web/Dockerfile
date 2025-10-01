@@ -31,8 +31,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Create data directory for user/download data
-RUN mkdir -p /app/data && chown -R nextjs:nodejs /app/data
+# Copy data directory with initial files
+COPY --from=builder /app/data ./data
+
+# Set correct permissions for data directory
+RUN chown -R nextjs:nodejs /app/data
 
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
