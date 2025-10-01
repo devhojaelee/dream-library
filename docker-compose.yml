@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: dream-library-web
     ports:
-      - "3000:3000"
+      - "192.168.0.5:3000:3000"
     volumes:
       - ./books:/books:ro  # Read-only mount for web server
       - ./web/data:/app/data  # User data persistence
