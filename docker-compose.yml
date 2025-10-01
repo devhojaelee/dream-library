@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: dream-library-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./books:/app/public/books:ro  # Read-only mount for web server
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - dream-library
+
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawler
+    container_name: dream-library-crawler
+    volumes:
+      - ./books:/app/books  # Read-write mount for crawler
+    environment:
+      - PYTHONUNBUFFERED=1
+    profiles:
+      - crawler  # Only runs when explicitly specified
+    networks:
+      - dream-library
+
+networks:
+  dream-library:
+    driver: bridge
+
+volumes:
+  books:
+    driver: local

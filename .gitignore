@@ -1,0 +1,55 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Books and downloads
+books/*.epub
+books/covers/*
+books/metadata/*
+download_log.txt
+screenshots/
+
+# Node.js
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test scripts
+test_scripts/
+
+# Sensitive files
+book_downloader.py  # Contains login credentials
+
+# Build files
+dist/
+build/
+*.log
+
+# Keep directory structure
+!books/.gitkeep
+!books/covers/.gitkeep
+!books/metadata/.gitkeep

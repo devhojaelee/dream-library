@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ filename: string }> }
+) {
+  try {
+    const { filename } = await params;
+    const coversDir = path.join(process.cwd(), '..', 'books', 'covers');
+    const filepath = path.join(coversDir, filename);
+
+    // 파일이 존재하는지 확인
+    if (!fs.existsSync(filepath)) {
+      return NextResponse.json({ error: 'Cover not found' }, { status: 404 });
+    }
+
+    // 파일 읽기
+    const fileBuffer = fs.readFileSync(filepath);
+
+    // 확장자에 따라 content-type 설정
+    const ext = path.extname(filename).toLowerCase();
+    const contentTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+    };
+
+    const contentType = contentTypes[ext] || 'image/jpeg';
+
+    // 이미지 응답 반환
+    return new NextResponse(fileBuffer, {
+      headers: {
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      },
+    });
+  } catch (error) {
+    console.error('Cover error:', error);
+    return NextResponse.json({ error: 'Failed to load cover' }, { status: 500 });
+  }
+}
