@@ -123,7 +123,7 @@ export default function EinkHome() {
 
   const loadNextPage = () => {
     const nextPage = page + 1;
-    const startIndex = nextPage * BOOKS_PER_PAGE;
+    const startIndex = (nextPage - 1) * BOOKS_PER_PAGE;
     const endIndex = startIndex + BOOKS_PER_PAGE;
 
     const filteredBooks = getFilteredBooks();
