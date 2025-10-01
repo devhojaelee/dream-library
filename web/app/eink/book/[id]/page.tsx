@@ -157,7 +157,7 @@ export default function EinkBookDetail() {
   }
 
   return (
-    <div style={{
+    <div className="eink-mode" style={{
       minHeight: '100vh',
       background: '#ffffff',
       color: '#000000'

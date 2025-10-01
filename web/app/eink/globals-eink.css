@@ -1,22 +1,18 @@
 /* E-ink Display Optimized Styles */
 
-/* Disable all animations and transitions */
-*,
-*::before,
-*::after {
-  transition: none !important;
-  animation: none !important;
-}
-
-/* High contrast black and white */
-body {
+/* Scope all E-ink styles to prevent leaking to main site */
+.eink-mode {
   background: #ffffff;
   color: #000000;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
-/* Remove all gradients and shadows */
-* {
+/* Disable all animations and transitions */
+.eink-mode *,
+.eink-mode *::before,
+.eink-mode *::after {
+  transition: none !important;
+  animation: none !important;
   background-image: none !important;
   box-shadow: none !important;
   text-shadow: none !important;
@@ -59,7 +55,7 @@ body {
 }
 
 /* High contrast links */
-a {
+.eink-mode a {
   color: #000000;
   text-decoration: underline;
 }
@@ -70,38 +66,38 @@ a {
 }
 
 /* Grayscale images */
-img {
+.eink-mode img {
   filter: grayscale(100%) contrast(1.2);
 }
 
 /* Large touch targets */
-button,
-a,
-input {
+.eink-mode button,
+.eink-mode a,
+.eink-mode input {
   min-height: 44px;
   min-width: 44px;
 }
 
 /* Clear text hierarchy */
-h1 {
+.eink-mode h1 {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 16px;
 }
 
-h2 {
+.eink-mode h2 {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 12px;
 }
 
-h3 {
+.eink-mode h3 {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-p {
+.eink-mode p {
   font-size: 18px;
   line-height: 1.6;
   margin-bottom: 12px;
