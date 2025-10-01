@@ -277,7 +277,7 @@ export default function EinkHome() {
           <>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(2, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
               gap: '16px',
               marginBottom: '24px'
             }}>
@@ -294,14 +294,13 @@ export default function EinkHome() {
                   }}>
                     {/* Book Cover */}
                     <div style={{
-                      aspectRatio: '3/4',
+                      aspectRatio: '2/3',
                       background: '#f0f0f0',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '12px',
-                      border: '1px solid #000000',
-                      minHeight: '280px'
+                      border: '1px solid #000000'
                     }}>
                       {book.cover ? (
                         <img
