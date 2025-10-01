@@ -212,9 +212,9 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">✨ Dream Library</h1>
-          </div>
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900 cursor-pointer">✨ Dream Library</h1>
+          </Link>
           <div className="flex items-center gap-2 md:gap-4">
             <Link
               href="/eink"
