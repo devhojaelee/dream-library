@@ -7,7 +7,6 @@ export async function GET() {
     // /books 폴더 경로 (프로젝트 루트 기준)
     const booksDir = path.join(process.cwd(), '..', 'books');
     const metadataDir = path.join(booksDir, 'metadata');
-    const coversDir = path.join(booksDir, 'covers');
 
     // 폴더가 없으면 생성
     if (!fs.existsSync(booksDir)) {
@@ -29,7 +28,7 @@ export async function GET() {
       // Find metadata JSON with same base filename
       const metadataPath = path.join(metadataDir, `${title}.json`);
 
-      let metadata: any = {};
+      let metadata: Record<string, string> = {};
       if (fs.existsSync(metadataPath)) {
         const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
         metadata = JSON.parse(metadataContent);

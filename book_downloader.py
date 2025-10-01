@@ -35,7 +35,7 @@ def download_incremental():
         os.makedirs('./books/metadata')
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context(accept_downloads=True)
         page = context.new_page()
 
@@ -73,7 +73,7 @@ def download_incremental():
 
             # Main loop: download batch, then load more
             round_number = 0
-            while downloaded_count < 999:
+            while True:
                 round_number += 1
                 print(f"\n{'='*70}")
                 print(f"ROUND {round_number}")
@@ -150,10 +150,6 @@ def download_incremental():
                     batch_size = 5
 
                     for batch_start in range(0, len(books_this_round), batch_size):
-                        if downloaded_count >= 999:
-                            print(f"\n🎯 Reached limit: 999")
-                            break
-
                         batch = books_this_round[batch_start:batch_start + batch_size]
                         print(f"\n{'='*70}")
                         print(f"BATCH {batch_start//batch_size + 1}: Processing {len(batch)} books")

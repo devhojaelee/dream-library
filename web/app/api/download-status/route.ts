@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, trackDownload, getDownloads } from '@/lib/auth';
+import { verifyToken, getDownloads } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
 
