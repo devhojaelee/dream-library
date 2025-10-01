@@ -158,173 +158,173 @@ def download_incremental():
                         print(f"[{idx + 1}/{len(books_this_round)}] {title[:60]}")
                         print(f"{'='*70}")
 
-                            try:
-                                book_url = f"https://z-library.ec{href}"
-                                print(f"  → Navigating: {book_url[:80]}...")
-                                page.goto(book_url, timeout=90000)
-                                time.sleep(1)
+                        try:
+                            book_url = f"https://z-library.ec{href}"
+                            print(f"  → Navigating: {book_url[:80]}...")
+                            page.goto(book_url, timeout=90000)
+                            time.sleep(1)
 
-                                # Find EPUB button (not PDF)
-                                epub_btns = page.locator('a:has-text("EPUB")').all()
-                                epub_btn = None
+                            # Find EPUB button (not PDF)
+                            epub_btns = page.locator('a:has-text("EPUB")').all()
+                            epub_btn = None
 
-                                # Find the actual EPUB button (not PDF)
-                                for btn in epub_btns:
-                                    btn_text = btn.inner_text()
-                                    if 'PDF' not in btn_text.upper():
-                                        epub_btn = btn
-                                        break
+                            # Find the actual EPUB button (not PDF)
+                            for btn in epub_btns:
+                                btn_text = btn.inner_text()
+                                if 'PDF' not in btn_text.upper():
+                                    epub_btn = btn
+                                    break
 
-                                if epub_btn and epub_btn.is_visible():
-                                    print(f"  → Preparing metadata extraction...")
+                            if epub_btn and epub_btn.is_visible():
+                                print(f"  → Preparing metadata extraction...")
 
-                                    # Prepare safe filename for this book (will be used later)
-                                    safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip()
+                                # Prepare safe filename for this book (will be used later)
+                                safe_title = "".join(c for c in title if c.isalnum() or c in (' ', '-', '_')).strip()
 
-                                    # Extract metadata (but don't save yet - wait for EPUB success)
-                                    metadata = {'title': title, 'url': book_url}
-                                    cover_src_url = None
-                                    cover_ext = 'jpg'
+                                # Extract metadata (but don't save yet - wait for EPUB success)
+                                metadata = {'title': title, 'url': book_url}
+                                cover_src_url = None
+                                cover_ext = 'jpg'
 
-                                    # Get cover image URL
+                                # Get cover image URL
+                                try:
+                                    cover_img = page.locator('img.cover').first
+                                    if cover_img.count() > 0:
+                                        cover_src = cover_img.get_attribute('src')
+                                        if cover_src:
+                                            if not cover_src.startswith('http'):
+                                                cover_src = f"https://z-library.ec{cover_src}"
+                                            cover_src_url = cover_src
+                                            cover_ext = cover_src.split('.')[-1].split('?')[0] or 'jpg'
+                                            print(f"    📷 Cover URL found")
+                                except Exception as e:
+                                    print(f"    ⚠️ Cover URL failed: {str(e)[:40]}")
+
+                                # Get description
+                                try:
+                                    desc_elem = page.locator('.book-description, .bookDescriptionBox, [itemprop="description"]').first
+                                    if desc_elem.count() > 0:
+                                        description = desc_elem.inner_text().strip()
+                                        metadata['description'] = description
+                                        print(f"    ✅ Description: {description[:50]}...")
+                                except Exception as e:
+                                    print(f"    ⚠️ Description failed: {str(e)[:40]}")
+
+                                # Get author
+                                try:
+                                    author_elem = page.locator('[itemprop="author"], .author').first
+                                    if author_elem.count() > 0:
+                                        author = author_elem.inner_text().strip()
+                                        metadata['author'] = author
+                                        print(f"    ✅ Author: {author}")
+                                except Exception as e:
+                                    print(f"    ⚠️ Author failed: {str(e)[:40]}")
+
+                                # Get year
+                                try:
+                                    year_elem = page.locator('[itemprop="datePublished"], .property_year .property_value').first
+                                    if year_elem.count() > 0:
+                                        year = year_elem.inner_text().strip()
+                                        metadata['year'] = year
+                                        print(f"    ✅ Year: {year}")
+                                except Exception as e:
+                                    print(f"    ⚠️ Year failed: {str(e)[:40]}")
+
+                                print(f"  → Clicking EPUB...")
+
+                                # Download with context manager
+                                with page.expect_download(timeout=90000) as download_info:
+                                    epub_btn.click()
+
+                                download = download_info.value
+
+                                # Save EPUB
+                                filename = f"{safe_title[:100]}.epub"
+                                filepath = f"./books/{filename}"
+
+                                download.save_as(filepath)
+                                filesize = os.path.getsize(filepath) / 1024 / 1024
+
+                                # EPUB download succeeded - now save cover with matching filename
+                                if cover_src_url:
                                     try:
-                                        cover_img = page.locator('img.cover').first
-                                        if cover_img.count() > 0:
-                                            cover_src = cover_img.get_attribute('src')
-                                            if cover_src:
-                                                if not cover_src.startswith('http'):
-                                                    cover_src = f"https://z-library.ec{cover_src}"
-                                                cover_src_url = cover_src
-                                                cover_ext = cover_src.split('.')[-1].split('?')[0] or 'jpg'
-                                                print(f"    📷 Cover URL found")
+                                        response = page.request.get(cover_src_url)
+                                        if response.ok:
+                                            # Use same safe_title as EPUB
+                                            cover_filename = f"{safe_title[:100]}.{cover_ext}"
+                                            cover_path = f"./books/covers/{cover_filename}"
+
+                                            with open(cover_path, 'wb') as f:
+                                                f.write(response.body())
+
+                                            metadata['cover'] = cover_filename
+                                            print(f"    ✅ Cover saved: {cover_filename}")
                                     except Exception as e:
-                                        print(f"    ⚠️ Cover URL failed: {str(e)[:40]}")
+                                        print(f"    ⚠️ Cover download failed: {str(e)[:40]}")
 
-                                    # Get description
-                                    try:
-                                        desc_elem = page.locator('.book-description, .bookDescriptionBox, [itemprop="description"]').first
-                                        if desc_elem.count() > 0:
-                                            description = desc_elem.inner_text().strip()
-                                            metadata['description'] = description
-                                            print(f"    ✅ Description: {description[:50]}...")
-                                    except Exception as e:
-                                        print(f"    ⚠️ Description failed: {str(e)[:40]}")
+                                # Save metadata JSON with same filename base
+                                metadata['filename'] = filename
+                                metadata['filesize'] = filesize
 
-                                    # Get author
-                                    try:
-                                        author_elem = page.locator('[itemprop="author"], .author').first
-                                        if author_elem.count() > 0:
-                                            author = author_elem.inner_text().strip()
-                                            metadata['author'] = author
-                                            print(f"    ✅ Author: {author}")
-                                    except Exception as e:
-                                        print(f"    ⚠️ Author failed: {str(e)[:40]}")
+                                metadata_filename = f"{safe_title[:100]}.json"
+                                metadata_path = f"./books/metadata/{metadata_filename}"
+                                with open(metadata_path, 'w', encoding='utf-8') as f:
+                                    json.dump(metadata, f, ensure_ascii=False, indent=2)
 
-                                    # Get year
-                                    try:
-                                        year_elem = page.locator('[itemprop="datePublished"], .property_year .property_value').first
-                                        if year_elem.count() > 0:
-                                            year = year_elem.inner_text().strip()
-                                            metadata['year'] = year
-                                            print(f"    ✅ Year: {year}")
-                                    except Exception as e:
-                                        print(f"    ⚠️ Year failed: {str(e)[:40]}")
-
-                                    print(f"  → Clicking EPUB...")
-
-                                    # Download with context manager
-                                    with page.expect_download(timeout=90000) as download_info:
-                                        epub_btn.click()
-
-                                    download = download_info.value
-
-                                    # Save EPUB
-                                    filename = f"{safe_title[:100]}.epub"
-                                    filepath = f"./books/{filename}"
-
-                                    download.save_as(filepath)
-                                    filesize = os.path.getsize(filepath) / 1024 / 1024
-
-                                    # EPUB download succeeded - now save cover with matching filename
-                                    if cover_src_url:
-                                        try:
-                                            response = page.request.get(cover_src_url)
-                                            if response.ok:
-                                                # Use same safe_title as EPUB
-                                                cover_filename = f"{safe_title[:100]}.{cover_ext}"
-                                                cover_path = f"./books/covers/{cover_filename}"
-
-                                                with open(cover_path, 'wb') as f:
-                                                    f.write(response.body())
-
-                                                metadata['cover'] = cover_filename
-                                                print(f"    ✅ Cover saved: {cover_filename}")
-                                        except Exception as e:
-                                            print(f"    ⚠️ Cover download failed: {str(e)[:40]}")
-
-                                    # Save metadata JSON with same filename base
-                                    metadata['filename'] = filename
-                                    metadata['filesize'] = filesize
-
-                                    metadata_filename = f"{safe_title[:100]}.json"
-                                    metadata_path = f"./books/metadata/{metadata_filename}"
-                                    with open(metadata_path, 'w', encoding='utf-8') as f:
-                                        json.dump(metadata, f, ensure_ascii=False, indent=2)
-
-                                    downloaded_count += 1
-                                    downloaded_titles.add(title)
-                                    print(f"  ✅ {title[:50]} - {filesize:.1f} MB (Total: {downloaded_count})")
-                                    idx += 1
-
-                                else:
-                                    print(f"  ❌ No EPUB button")
-                                    idx += 1
-
-                            except Exception as e:
-                                # Check for download limit
-                                if 'dailylimit' in page.url.lower() or \
-                                   page.locator('text=/daily.*limit.*reached/i').count() > 0:
-                                    print(f"\n⏳ Download limit detected!")
-
-                                    page_text = page.content()
-                                    tooltip_match = re.search(r'(\d+)h\s*(\d+)m', page_text, re.IGNORECASE)
-                                    combined_match = re.search(r'(\d+)\s*hour[s]?\s+(\d+)\s*minute', page_text, re.IGNORECASE)
-                                    hour_only_match = re.search(r'(\d+)\s*hour', page_text, re.IGNORECASE)
-                                    minute_only_match = re.search(r'(\d+)\s*minute', page_text, re.IGNORECASE)
-
-                                    total_wait_seconds = 0
-                                    if tooltip_match:
-                                        wait_hours = int(tooltip_match.group(1))
-                                        wait_minutes = int(tooltip_match.group(2))
-                                        total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
-                                        print(f"  ⏰ Need to wait {wait_hours}h {wait_minutes}m = {total_wait_seconds}s")
-                                    elif combined_match:
-                                        wait_hours = int(combined_match.group(1))
-                                        wait_minutes = int(combined_match.group(2))
-                                        total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
-                                        print(f"  ⏰ Need to wait {wait_hours}h {wait_minutes}m = {total_wait_seconds}s")
-                                    elif hour_only_match:
-                                        wait_hours = int(hour_only_match.group(1))
-                                        total_wait_seconds = wait_hours * 3600
-                                        print(f"  ⏰ Need to wait {wait_hours}h = {total_wait_seconds}s")
-                                    elif minute_only_match:
-                                        wait_minutes = int(minute_only_match.group(1))
-                                        total_wait_seconds = wait_minutes * 60
-                                        print(f"  ⏰ Need to wait {wait_minutes}m = {total_wait_seconds}s")
-
-                                    if total_wait_seconds > 0:
-                                        print(f"  💤 Waiting {total_wait_seconds + 10}s...")
-                                        time.sleep(total_wait_seconds + 10)
-                                        print(f"  ✅ Wait completed! Retrying this book...")
-                                        # Don't increment idx, retry the same book
-                                        continue
-                                    else:
-                                        print(f"  ⚠️ Could not parse wait time, skipping...")
-                                        idx += 1
-                                        continue
-
-                                print(f"  ❌ Failed: {title[:50]} - {str(e)[:50]}")
+                                downloaded_count += 1
+                                downloaded_titles.add(title)
+                                print(f"  ✅ {title[:50]} - {filesize:.1f} MB (Total: {downloaded_count})")
                                 idx += 1
+
+                            else:
+                                print(f"  ❌ No EPUB button")
+                                idx += 1
+
+                        except Exception as e:
+                            # Check for download limit
+                            if 'dailylimit' in page.url.lower() or \
+                               page.locator('text=/daily.*limit.*reached/i').count() > 0:
+                                print(f"\n⏳ Download limit detected!")
+
+                                page_text = page.content()
+                                tooltip_match = re.search(r'(\d+)h\s*(\d+)m', page_text, re.IGNORECASE)
+                                combined_match = re.search(r'(\d+)\s*hour[s]?\s+(\d+)\s*minute', page_text, re.IGNORECASE)
+                                hour_only_match = re.search(r'(\d+)\s*hour', page_text, re.IGNORECASE)
+                                minute_only_match = re.search(r'(\d+)\s*minute', page_text, re.IGNORECASE)
+
+                                total_wait_seconds = 0
+                                if tooltip_match:
+                                    wait_hours = int(tooltip_match.group(1))
+                                    wait_minutes = int(tooltip_match.group(2))
+                                    total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
+                                    print(f"  ⏰ Need to wait {wait_hours}h {wait_minutes}m = {total_wait_seconds}s")
+                                elif combined_match:
+                                    wait_hours = int(combined_match.group(1))
+                                    wait_minutes = int(combined_match.group(2))
+                                    total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
+                                    print(f"  ⏰ Need to wait {wait_hours}h {wait_minutes}m = {total_wait_seconds}s")
+                                elif hour_only_match:
+                                    wait_hours = int(hour_only_match.group(1))
+                                    total_wait_seconds = wait_hours * 3600
+                                    print(f"  ⏰ Need to wait {wait_hours}h = {total_wait_seconds}s")
+                                elif minute_only_match:
+                                    wait_minutes = int(minute_only_match.group(1))
+                                    total_wait_seconds = wait_minutes * 60
+                                    print(f"  ⏰ Need to wait {wait_minutes}m = {total_wait_seconds}s")
+
+                                if total_wait_seconds > 0:
+                                    print(f"  💤 Waiting {total_wait_seconds + 10}s...")
+                                    time.sleep(total_wait_seconds + 10)
+                                    print(f"  ✅ Wait completed! Retrying this book...")
+                                    # Don't increment idx, retry the same book
+                                    continue
+                                else:
+                                    print(f"  ⚠️ Could not parse wait time, skipping...")
+                                    idx += 1
+                                    continue
+
+                            print(f"  ❌ Failed: {title[:50]} - {str(e)[:50]}")
+                            idx += 1
 
                         # Return to main page
                         page.goto("https://z-library.ec/", timeout=60000)
