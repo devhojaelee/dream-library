@@ -61,7 +61,7 @@ export default function Home() {
     // Load books
     fetch('/api/books')
       .then(res => res.json())
-      .then(data => {
+      .then((data: { books: Book[] }) => {
         const shuffled = shuffleArray(data.books || []);
         setAllBooks(shuffled);
         setDisplayedBooks(shuffled.slice(0, BOOKS_PER_PAGE));
