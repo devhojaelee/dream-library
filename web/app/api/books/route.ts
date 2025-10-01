@@ -4,8 +4,8 @@ import path from 'path';
 
 export async function GET() {
   try {
-    // /books 폴더 경로 (프로젝트 루트 기준)
-    const booksDir = path.join(process.cwd(), '..', 'books');
+    // /books 폴더 경로 (Docker 볼륨 마운트)
+    const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
     const metadataDir = path.join(booksDir, 'metadata');
 
     // 폴더가 없으면 생성

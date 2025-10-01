@@ -8,7 +8,8 @@ export async function GET(
 ) {
   try {
     const { filename } = await params;
-    const coversDir = path.join(process.cwd(), '..', 'books', 'covers');
+    const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
+    const coversDir = path.join(booksDir, 'covers');
     const filepath = path.join(coversDir, filename);
 
     // 파일이 존재하는지 확인

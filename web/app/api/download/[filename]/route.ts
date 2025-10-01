@@ -10,7 +10,7 @@ export async function GET(
   try {
     const { filename } = await params;
     const bookId = request.nextUrl.searchParams.get('bookId');
-    const booksDir = path.join(process.cwd(), '..', 'books');
+    const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
     const filepath = path.join(booksDir, filename);
 
     // 파일이 존재하는지 확인

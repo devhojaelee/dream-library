@@ -9,9 +9,10 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./books:/app/public/books:ro  # Read-only mount for web server
+      - ./books:/books:ro  # Read-only mount for web server
     environment:
       - NODE_ENV=production
+      - BOOKS_DIR=/books
     restart: unless-stopped
     networks:
       - dream-library
