@@ -203,7 +203,7 @@ export default function EinkHome() {
             flexWrap: 'wrap',
             gap: '12px'
           }}>
-            <Link
+            <a
               href="/eink"
               style={{
                 textDecoration: 'none',
@@ -218,7 +218,7 @@ export default function EinkHome() {
               }}>
                 Dream Library (E-Reader)
               </h1>
-            </Link>
+            </a>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <Link
