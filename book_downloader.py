@@ -166,7 +166,7 @@ def download_incremental():
                             try:
                                 book_url = f"https://z-library.ec{href}"
                                 print(f"  → Navigating: {book_url[:80]}...")
-                                page.goto(book_url, timeout=30000)
+                                page.goto(book_url, timeout=90000)
                                 time.sleep(1)
 
                                 # Find EPUB button (not PDF)
@@ -238,7 +238,7 @@ def download_incremental():
                                     print(f"  → Clicking EPUB...")
 
                                     # Start download expectation BEFORE clicking
-                                    download_expectation = page.expect_download(timeout=60000)
+                                    download_expectation = page.expect_download(timeout=90000)
                                     epub_btn.click()
 
                                     download_expectations.append({
