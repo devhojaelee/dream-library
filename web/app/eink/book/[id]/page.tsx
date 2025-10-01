@@ -346,7 +346,7 @@ export default function EinkBookDetail() {
                     className={isDownloaded ? 'eink-button-primary' : 'eink-button'}
                     style={{ width: '100%' }}
                   >
-                    {isDownloaded ? '✓ 소장 취소' : '☐ 소장중으로 표시'}
+                    {isDownloaded ? '✅ 소장 취소' : '☐ 소장중으로 표시'}
                   </button>
                 )}
               </div>

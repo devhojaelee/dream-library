@@ -366,7 +366,8 @@ export default function EinkHome() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '12px',
-                      border: '1px solid #000000'
+                      border: '1px solid #000000',
+                      position: 'relative'
                     }}>
                       {book.cover ? (
                         <img
