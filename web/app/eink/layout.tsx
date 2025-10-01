@@ -11,11 +11,5 @@ export default function EinkLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="ko">
-      <body style={{ background: '#ffffff', color: '#000000' }}>
-        {children}
-      </body>
-    </html>
-  );
+  return <>{children}</>;
 }
