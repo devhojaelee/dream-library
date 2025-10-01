@@ -13,9 +13,13 @@
 .eink-mode *::after {
   transition: none !important;
   animation: none !important;
-  background-image: none !important;
   box-shadow: none !important;
   text-shadow: none !important;
+}
+
+/* Remove gradients only (preserve solid backgrounds) */
+.eink-mode * {
+  background-image: none !important;
 }
 
 /* E-ink optimized button */
@@ -38,8 +42,9 @@
 
 /* E-ink optimized primary button */
 .eink-button-primary {
-  background: #000000;
-  color: #ffffff;
+  background: #000000 !important;
+  background-color: #000000 !important;
+  color: #ffffff !important;
   border: 2px solid #000000;
   min-height: 48px;
   min-width: 48px;
@@ -50,8 +55,9 @@
 }
 
 .eink-button-primary:active {
-  background: #ffffff;
-  color: #000000;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 /* High contrast links */
@@ -126,4 +132,32 @@
   padding: 4px 12px;
   font-weight: 600;
   font-size: 16px;
+}
+
+/* Responsive search input */
+.eink-search-input {
+  width: 100%;
+  padding: 12px;
+  padding-right: 40px;
+  font-size: 18px;
+  border: 2px solid #000000;
+  background: #ffffff;
+  color: #000000;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .eink-search-input {
+    font-size: 16px;
+    padding: 10px;
+    padding-right: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .eink-search-input {
+    font-size: 14px;
+    padding: 8px;
+    padding-right: 32px;
+  }
 }

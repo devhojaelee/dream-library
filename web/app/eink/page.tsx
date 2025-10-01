@@ -268,15 +268,7 @@ export default function EinkHome() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="책 제목, 저자, 파일명으로 검색..."
-              style={{
-                width: '100%',
-                padding: '12px',
-                paddingRight: '40px',
-                fontSize: '18px',
-                border: '2px solid #000000',
-                background: '#ffffff',
-                color: '#000000'
-              }}
+              className="eink-search-input"
             />
             {searchQuery && (
               <button
