@@ -29,6 +29,7 @@ export default function EinkHome() {
   const [page, setPage] = useState(1);
   const [user, setUser] = useState<User | null>(null);
   const [hideDownloaded, setHideDownloaded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const BOOKS_PER_PAGE = 10;
 
@@ -66,17 +67,28 @@ export default function EinkHome() {
       });
   }, []);
 
-  // Filter books based on hideDownloaded
+  // Filter books based on hideDownloaded and search query
   useEffect(() => {
     let filteredBooks = allBooks;
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredBooks = filteredBooks.filter(book =>
+        book.title.toLowerCase().includes(query) ||
+        book.author?.toLowerCase().includes(query) ||
+        book.filename.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply downloaded filter
     if (hideDownloaded && user) {
-      filteredBooks = allBooks.filter(book => !user.downloadedBooks.includes(book.id));
+      filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
     }
 
     setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
     setPage(1);
-  }, [hideDownloaded, allBooks, user]);
+  }, [hideDownloaded, allBooks, user, searchQuery]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -88,16 +100,33 @@ export default function EinkHome() {
     return user?.downloadedBooks?.includes(bookId) || false;
   };
 
+  const getFilteredBooks = () => {
+    let filteredBooks = allBooks;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredBooks = filteredBooks.filter(book =>
+        book.title.toLowerCase().includes(query) ||
+        book.author?.toLowerCase().includes(query) ||
+        book.filename.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply downloaded filter
+    if (hideDownloaded && user) {
+      filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
+    }
+
+    return filteredBooks;
+  };
+
   const loadNextPage = () => {
     const nextPage = page + 1;
     const startIndex = nextPage * BOOKS_PER_PAGE;
     const endIndex = startIndex + BOOKS_PER_PAGE;
 
-    let filteredBooks = allBooks;
-    if (hideDownloaded && user) {
-      filteredBooks = allBooks.filter(book => !user.downloadedBooks.includes(book.id));
-    }
-
+    const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(nextPage);
@@ -110,21 +139,10 @@ export default function EinkHome() {
     const startIndex = (prevPage - 1) * BOOKS_PER_PAGE;
     const endIndex = startIndex + BOOKS_PER_PAGE;
 
-    let filteredBooks = allBooks;
-    if (hideDownloaded && user) {
-      filteredBooks = allBooks.filter(book => !user.downloadedBooks.includes(book.id));
-    }
-
+    const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(prevPage);
-  };
-
-  const getFilteredBooks = () => {
-    if (hideDownloaded && user) {
-      return allBooks.filter(book => !user.downloadedBooks.includes(book.id));
-    }
-    return allBooks;
   };
 
   const hasMore = page * BOOKS_PER_PAGE < getFilteredBooks().length;
@@ -234,6 +252,54 @@ export default function EinkHome() {
         margin: '0 auto',
         padding: '16px'
       }}>
+        {/* Search Bar */}
+        <div style={{ marginBottom: '16px' }}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="책 제목, 저자, 파일명으로 검색..."
+              style={{
+                width: '100%',
+                padding: '12px',
+                paddingRight: '40px',
+                fontSize: '18px',
+                border: '2px solid #000000',
+                background: '#ffffff',
+                color: '#000000'
+              }}
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  padding: '4px'
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p style={{
+              marginTop: '8px',
+              fontSize: '16px',
+              color: '#000000'
+            }}>
+              &quot;{searchQuery}&quot; 검색 결과: {getFilteredBooks().length}권
+            </p>
+          )}
+        </div>
+
         <div style={{ marginBottom: '16px' }}>
           <h2 style={{
             fontSize: '24px',

@@ -36,6 +36,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [hideDownloaded, setHideDownloaded] = useState(false);
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const BOOKS_PER_PAGE = 20;
 
@@ -73,17 +74,28 @@ export default function Home() {
       });
   }, []);
 
-  // Filter books based on hideDownloaded
+  // Filter books based on hideDownloaded and search query
   useEffect(() => {
     let filteredBooks = allBooks;
 
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredBooks = filteredBooks.filter(book =>
+        book.title.toLowerCase().includes(query) ||
+        book.author?.toLowerCase().includes(query) ||
+        book.filename.toLowerCase().includes(query)
+      );
+    }
+
+    // Apply downloaded filter
     if (hideDownloaded && user) {
-      filteredBooks = allBooks.filter(book => !user.downloadedBooks.includes(book.id));
+      filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
     }
 
     setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
     setPage(1);
-  }, [hideDownloaded, allBooks, user]);
+  }, [hideDownloaded, allBooks, user, searchQuery]);
 
   // Create shooting stars dynamically based on viewport
   const createShootingStar = useCallback(() => {
@@ -139,21 +151,31 @@ export default function Home() {
     const startIndex = nextPage * BOOKS_PER_PAGE;
     const endIndex = startIndex + BOOKS_PER_PAGE;
 
-    let filteredBooks = allBooks;
-    if (hideDownloaded && user) {
-      filteredBooks = allBooks.filter(book => !user.downloadedBooks.includes(book.id));
-    }
-
+    const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(0, endIndex);
     setDisplayedBooks(newBooks);
     setPage(nextPage);
   };
 
   const getFilteredBooks = () => {
-    if (hideDownloaded && user) {
-      return allBooks.filter(book => !user.downloadedBooks.includes(book.id));
+    let filteredBooks = allBooks;
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredBooks = filteredBooks.filter(book =>
+        book.title.toLowerCase().includes(query) ||
+        book.author?.toLowerCase().includes(query) ||
+        book.filename.toLowerCase().includes(query)
+      );
     }
-    return allBooks;
+
+    // Apply downloaded filter
+    if (hideDownloaded && user) {
+      filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
+    }
+
+    return filteredBooks;
   };
 
   const hasMore = displayedBooks.length < getFilteredBooks().length;
@@ -227,7 +249,33 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 relative z-10">
-        <div className="mb-6 flex items-center justify-between">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="책 제목, 저자, 파일명으로 검색..."
+              className="w-full px-4 py-3 pr-10 text-gray-900 bg-white/90 backdrop-blur-sm border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-600">
+              &quot;{searchQuery}&quot; 검색 결과: {getFilteredBooks().length}권
+            </p>
+          )}
+        </div>
+
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               전체 도서 ({getFilteredBooks().length}권)
