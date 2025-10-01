@@ -242,7 +242,7 @@ export default function EinkHome() {
                 </>
               ) : (
                 <Link
-                  href="/auth"
+                  href="/eink/auth"
                   className="eink-button-primary"
                   style={{ textDecoration: 'none' }}
                 >
