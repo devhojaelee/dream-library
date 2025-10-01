@@ -203,22 +203,21 @@ export default function EinkHome() {
             flexWrap: 'wrap',
             gap: '12px'
           }}>
-            <a
-              href="/eink"
+            <div
+              onClick={() => window.location.href = '/eink'}
               style={{
-                textDecoration: 'none',
-                color: '#000000'
+                cursor: 'pointer'
               }}
             >
               <h1 style={{
                 fontSize: '28px',
                 fontWeight: 700,
                 margin: 0,
-                cursor: 'pointer'
+                color: '#000000'
               }}>
                 Dream Library (E-Reader)
               </h1>
-            </a>
+            </div>
 
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <Link

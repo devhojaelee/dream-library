@@ -212,9 +212,12 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between">
-          <a href="/" className="hover:opacity-80 transition-opacity">
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900 cursor-pointer">✨ Dream Library</h1>
-          </a>
+          <div
+            onClick={() => window.location.href = '/'}
+            className="hover:opacity-80 transition-opacity cursor-pointer"
+          >
+            <h1 className="text-xl md:text-3xl font-bold text-gray-900">✨ Dream Library</h1>
+          </div>
           <div className="flex items-center gap-2 md:gap-4">
             <Link
               href="/eink"
