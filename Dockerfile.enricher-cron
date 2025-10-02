@@ -20,5 +20,5 @@ RUN echo "0 0 * * * cd /app && python enrich_metadata.py >> /var/log/cron.log 2>
     crontab /etc/cron.d/enricher-cron && \
     touch /var/log/cron.log
 
-# Run cron in foreground
-CMD ["sh", "-c", "cron && tail -f /var/log/cron.log"]
+# Run cron in foreground with initial execution
+CMD ["sh", "-c", "python /app/enrich_metadata.py >> /var/log/cron.log 2>&1 && cron && tail -f /var/log/cron.log"]
