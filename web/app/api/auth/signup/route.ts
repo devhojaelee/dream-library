@@ -39,11 +39,14 @@ export async function POST(request: NextRequest) {
 
     // Set cookie
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30 days or 1 day
+    const isProduction = process.env.NODE_ENV === 'production';
+
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: isProduction, // HTTPS only in production
+      sameSite: 'lax', // Must match login and logout
       maxAge,
+      path: '/', // Explicitly set path for consistency
     });
 
     return response;
