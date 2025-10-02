@@ -46,17 +46,19 @@ export async function POST(request: NextRequest) {
 
     // Set cookie
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30 days or 1 day
-    const isProduction = process.env.NODE_ENV === 'production';
+    const protocol = request.headers.get('x-forwarded-proto') ||
+                     (request.url.startsWith('https') ? 'https' : 'http');
+    const isSecure = protocol === 'https';
 
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: isProduction, // HTTPS only in production
+      secure: isSecure, // Match actual protocol (https = true, http = false)
       sameSite: 'lax', // Must match login and logout
       maxAge,
       path: '/', // Explicitly set path for consistency
     });
 
-    console.log('[SIGNUP] Cookie set for user:', username, 'NODE_ENV:', process.env.NODE_ENV, 'secure:', isProduction);
+    console.log('[SIGNUP] Cookie set for user:', username, 'protocol:', protocol, 'secure:', isSecure);
 
     return response;
   } catch (error: unknown) {

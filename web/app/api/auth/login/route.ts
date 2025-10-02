@@ -40,11 +40,13 @@ export async function POST(request: NextRequest) {
 
     // Set cookie
     const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60;
-    const isProduction = process.env.NODE_ENV === 'production';
+    const protocol = request.headers.get('x-forwarded-proto') ||
+                     (request.url.startsWith('https') ? 'https' : 'http');
+    const isSecure = protocol === 'https';
 
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: isProduction, // HTTPS only in production
+      secure: isSecure, // Match actual protocol (https = true, http = false)
       sameSite: 'lax',
       maxAge,
       path: '/', // Explicitly set path for consistency

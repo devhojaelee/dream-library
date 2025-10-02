@@ -9,17 +9,20 @@ export async function POST(request: NextRequest) {
 
   // Clear cookie with EXACT matching attributes from login/signup
   // Must match: httpOnly, secure, sameSite, path
-  const isProduction = process.env.NODE_ENV === 'production';
+  // CRITICAL: secure must match the protocol used (https = true, http = false)
+  const protocol = request.headers.get('x-forwarded-proto') ||
+                   (request.url.startsWith('https') ? 'https' : 'http');
+  const isSecure = protocol === 'https';
 
   response.cookies.set('auth_token', '', {
     httpOnly: true,
-    secure: isProduction,
+    secure: isSecure,
     sameSite: 'lax',
     maxAge: 0,
     path: '/',
   });
 
-  console.log('[LOGOUT] Cookie deleted with maxAge=0, NODE_ENV:', process.env.NODE_ENV, 'secure:', isProduction);
+  console.log('[LOGOUT] Cookie deleted with maxAge=0, protocol:', protocol, 'secure:', isSecure);
 
   return response;
 }
