@@ -3,6 +3,10 @@ import { createUser, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Log existing cookie before signup
+    const existingToken = request.cookies.get('auth_token')?.value;
+    console.log('[SIGNUP] Existing cookie before signup:', existingToken ? `${existingToken.substring(0, 20)}...` : 'NONE');
+
     const { username, password, rememberMe } = await request.json();
 
     if (!username || !password) {
@@ -29,6 +33,9 @@ export async function POST(request: NextRequest) {
     const user = await createUser(username, password);
     const token = generateToken(user.id, rememberMe);
 
+    console.log('[SIGNUP] New user created:', username, 'ID:', user.id);
+    console.log('[SIGNUP] New token generated:', token.substring(0, 20) + '...');
+
     const response = NextResponse.json({
       success: true,
       user: {
@@ -48,6 +55,8 @@ export async function POST(request: NextRequest) {
       maxAge,
       path: '/', // Explicitly set path for consistency
     });
+
+    console.log('[SIGNUP] Cookie set for user:', username, 'NODE_ENV:', process.env.NODE_ENV, 'secure:', isProduction);
 
     return response;
   } catch (error: unknown) {
