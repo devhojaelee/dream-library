@@ -12,10 +12,12 @@ books/*.epub
 books/covers/*
 books/metadata/*
 download_log.txt
-screenshots/
 
 # User data
 web/data/downloads.json
+
+# Development files
+dev/
 
 # Node.js
 node_modules/
