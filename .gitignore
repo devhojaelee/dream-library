@@ -14,6 +14,9 @@ books/metadata/*
 download_log.txt
 screenshots/
 
+# User data
+web/data/downloads.json
+
 # Node.js
 node_modules/
 .next/
