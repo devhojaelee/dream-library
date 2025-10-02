@@ -32,6 +32,20 @@ services:
     networks:
       - dream-library
 
+  enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher
+    container_name: dream-library-enricher
+    volumes:
+      - ./books:/app/books  # Read-write mount for metadata enrichment
+    environment:
+      - PYTHONUNBUFFERED=1
+    profiles:
+      - enricher  # Only runs when explicitly specified
+    networks:
+      - dream-library
+
 networks:
   dream-library:
     driver: bridge

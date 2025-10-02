@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  enricher-cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher-cron
+    container_name: dream-library-enricher-cron
+    volumes:
+      - ./books:/app/books
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Seoul
+    restart: unless-stopped
+    networks:
+      - dream-library
