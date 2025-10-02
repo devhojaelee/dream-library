@@ -92,8 +92,8 @@ export default function EinkHome() {
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    setUser(null);
-    router.refresh();
+    // Force full page reload to clear all state
+    window.location.reload();
   };
 
   const isDownloaded = (bookId: number) => {

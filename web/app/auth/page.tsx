@@ -31,9 +31,8 @@ export default function AuthPage() {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      // Redirect to home
-      router.push('/');
-      router.refresh();
+      // Force full page reload to ensure fresh user state
+      window.location.href = '/';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
