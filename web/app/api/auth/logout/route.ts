@@ -7,13 +7,10 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ success: true });
 
-  // Clear cookie - must match ALL settings from login/signup
+  // Clear cookie with EXACT matching attributes from login/signup
+  // Must match: httpOnly, secure, sameSite, path
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Use delete method for more reliable cookie removal
-  response.cookies.delete('auth_token');
-
-  // Also set empty value as backup
   response.cookies.set('auth_token', '', {
     httpOnly: true,
     secure: isProduction,
@@ -22,7 +19,7 @@ export async function POST(request: NextRequest) {
     path: '/',
   });
 
-  console.log('[LOGOUT] Cookie deleted, NODE_ENV:', process.env.NODE_ENV, 'secure:', isProduction);
+  console.log('[LOGOUT] Cookie deleted with maxAge=0, NODE_ENV:', process.env.NODE_ENV, 'secure:', isProduction);
 
   return response;
 }
