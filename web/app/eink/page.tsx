@@ -130,6 +130,7 @@ export default function EinkHome() {
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(nextPage);
+    window.scrollTo(0, 0);
   };
 
   const loadPrevPage = () => {
@@ -143,6 +144,7 @@ export default function EinkHome() {
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(prevPage);
+    window.scrollTo(0, 0);
   };
 
   const hasMore = page * BOOKS_PER_PAGE < getFilteredBooks().length;
