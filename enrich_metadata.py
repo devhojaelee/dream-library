@@ -38,8 +38,11 @@ class MetadataEnricher:
 
     def clean_title(self, title: str) -> str:
         """제목 정제: 괄호, 대괄호 내용 제거 (숫자는 유지)"""
-        # (개정판), [휴고상 수상작] 등 제거
-        cleaned = re.sub(r'[\(\[].*?[\)\]]', '', title)
+        # (개정판) 제거
+        cleaned = re.sub(r'\([^)]*\)', '', title)
+
+        # [휴고상 수상작] 제거
+        cleaned = re.sub(r'\[[^\]]*\]', '', cleaned)
 
         # 연속된 공백을 하나로
         cleaned = re.sub(r'\s+', ' ', cleaned)
