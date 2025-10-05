@@ -30,6 +30,7 @@
   color: #000000;
   border: 1.5px solid #333333;
   min-height: 48px;
+  max-height: 48px;
   min-width: 48px;
   font-size: 16px;
   padding: 10px 20px;
@@ -37,6 +38,9 @@
   font-weight: 500;
   letter-spacing: 0.3px;
   border-radius: 6px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .eink-button:active {
@@ -51,6 +55,7 @@
   color: #ffffff !important;
   border: 1.5px solid #000000;
   min-height: 48px;
+  max-height: 48px;
   min-width: 48px;
   font-size: 16px;
   padding: 10px 20px;
@@ -58,6 +63,9 @@
   font-weight: 500;
   letter-spacing: 0.3px;
   border-radius: 6px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .eink-button-primary:active {
@@ -291,6 +299,7 @@
     font-size: 13px;
     padding: 8px 12px;
     min-height: 40px;
+    max-height: 40px;
   }
 
   .eink-card-content {

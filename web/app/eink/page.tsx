@@ -40,8 +40,8 @@ export default function EinkHome() {
   const [encouragementMsg, setEncouragementMsg] = useState('');
   const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [showRecentOnly, setShowRecentOnly] = useState(false);
+  const [booksPerPage, setBooksPerPage] = useState(10);
   const router = useRouter();
-  const BOOKS_PER_PAGE = 10;
 
   // Fisher-Yates shuffle algorithm
   const shuffleArray = <T,>(array: T[]): T[] => {
@@ -52,6 +52,38 @@ export default function EinkHome() {
     }
     return shuffled;
   };
+
+  // Calculate columns and adjust books per page for E-ink (simpler grid)
+  const calculateBooksPerPage = useCallback(() => {
+    if (typeof window === 'undefined') return 10;
+
+    const width = window.innerWidth;
+    let columns = 2; // default
+
+    if (width >= 1024) columns = 5; // large screens
+    else if (width >= 768) columns = 4; // tablets
+    else if (width >= 480) columns = 3; // larger phones
+    else columns = 2; // small phones
+
+    const rows = 3; // Show ~3 rows for E-ink (less scrolling)
+    const booksToShow = columns * rows;
+
+    setBooksPerPage(booksToShow);
+    return booksToShow;
+  }, []);
+
+  useEffect(() => {
+    // Calculate initial books per page based on viewport
+    calculateBooksPerPage();
+
+    // Recalculate on window resize (for E-ink devices with rotation)
+    const handleResize = () => {
+      calculateBooksPerPage();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [calculateBooksPerPage]);
 
   useEffect(() => {
     // Load download status (E-ink: no real-time countdown, only initial value)
@@ -107,7 +139,7 @@ export default function EinkHome() {
       .then((data: { books: Book[] }) => {
         const shuffled = shuffleArray(data.books || []);
         setAllBooks(shuffled);
-        setDisplayedBooks(shuffled.slice(0, BOOKS_PER_PAGE));
+        setDisplayedBooks(shuffled.slice(0, booksPerPage));
         setLoading(false);
       })
       .catch(err => {
@@ -147,9 +179,9 @@ export default function EinkHome() {
       filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
     }
 
-    setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
+    setDisplayedBooks(filteredBooks.slice(0, booksPerPage));
     setPage(1);
-  }, [hideDownloaded, allBooks, user, searchQuery, showRecentOnly]);
+  }, [hideDownloaded, allBooks, user, searchQuery, showRecentOnly, booksPerPage]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -196,8 +228,8 @@ export default function EinkHome() {
 
   const loadNextPage = () => {
     const nextPage = page + 1;
-    const startIndex = (nextPage - 1) * BOOKS_PER_PAGE;
-    const endIndex = startIndex + BOOKS_PER_PAGE;
+    const startIndex = (nextPage - 1) * booksPerPage;
+    const endIndex = startIndex + booksPerPage;
 
     const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(startIndex, endIndex);
@@ -210,8 +242,8 @@ export default function EinkHome() {
     if (page <= 1) return;
 
     const prevPage = page - 1;
-    const startIndex = (prevPage - 1) * BOOKS_PER_PAGE;
-    const endIndex = startIndex + BOOKS_PER_PAGE;
+    const startIndex = (prevPage - 1) * booksPerPage;
+    const endIndex = startIndex + booksPerPage;
 
     const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(startIndex, endIndex);
@@ -220,7 +252,7 @@ export default function EinkHome() {
     window.scrollTo(0, 0);
   };
 
-  const hasMore = page * BOOKS_PER_PAGE < getFilteredBooks().length;
+  const hasMore = page * booksPerPage < getFilteredBooks().length;
   const hasPrev = page > 1;
 
   const formatFileSize = (bytes: number) => {

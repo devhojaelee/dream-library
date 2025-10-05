@@ -47,8 +47,8 @@ export default function Home() {
   const [encouragementMsg, setEncouragementMsg] = useState('');
   const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [showRecentOnly, setShowRecentOnly] = useState(false);
+  const [booksPerPage, setBooksPerPage] = useState(20);
   const router = useRouter();
-  const BOOKS_PER_PAGE = 20;
 
   // Fisher-Yates shuffle algorithm
   const shuffleArray = <T,>(array: T[]): T[] => {
@@ -59,6 +59,38 @@ export default function Home() {
     }
     return shuffled;
   };
+
+  // Calculate columns and adjust books per page to fill grid perfectly
+  const calculateBooksPerPage = useCallback(() => {
+    if (typeof window === 'undefined') return 20;
+
+    const width = window.innerWidth;
+    let columns = 2; // default mobile
+
+    if (width >= 1280) columns = 5; // xl
+    else if (width >= 1024) columns = 4; // lg
+    else if (width >= 768) columns = 3; // md
+    else columns = 2; // default
+
+    const rows = 5; // Show ~5 rows worth of books
+    const booksToShow = columns * rows;
+
+    setBooksPerPage(booksToShow);
+    return booksToShow;
+  }, []);
+
+  useEffect(() => {
+    // Calculate initial books per page based on viewport
+    const initialCount = calculateBooksPerPage();
+
+    // Recalculate on window resize
+    const handleResize = () => {
+      calculateBooksPerPage();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [calculateBooksPerPage]);
 
   useEffect(() => {
     // Load download status
@@ -129,7 +161,7 @@ export default function Home() {
       .then((data: { books: Book[] }) => {
         const shuffled = shuffleArray(data.books || []);
         setAllBooks(shuffled);
-        setDisplayedBooks(shuffled.slice(0, BOOKS_PER_PAGE));
+        setDisplayedBooks(shuffled.slice(0, booksPerPage));
         setLoading(false);
       })
       .catch(err => {
@@ -169,9 +201,9 @@ export default function Home() {
       });
     }
 
-    setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
+    setDisplayedBooks(filteredBooks.slice(0, booksPerPage));
     setPage(1);
-  }, [hideDownloaded, showRecentOnly, allBooks, user, searchQuery]);
+  }, [hideDownloaded, showRecentOnly, allBooks, user, searchQuery, booksPerPage]);
 
   // Create shooting stars dynamically based on viewport
   const createShootingStar = useCallback(() => {
@@ -224,8 +256,8 @@ export default function Home() {
 
   const loadMore = () => {
     const nextPage = page + 1;
-    const startIndex = nextPage * BOOKS_PER_PAGE;
-    const endIndex = startIndex + BOOKS_PER_PAGE;
+    const startIndex = nextPage * booksPerPage;
+    const endIndex = startIndex + booksPerPage;
 
     const filteredBooks = getFilteredBooks();
     const newBooks = filteredBooks.slice(0, endIndex);
