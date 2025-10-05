@@ -88,47 +88,81 @@ export default function EinkPasswordChangePage() {
       <h2 style={{
         fontSize: '28px',
         fontWeight: 700,
-        marginBottom: '16px'
+        marginBottom: '16px',
+        letterSpacing: '-0.5px'
       }}>
         비밀번호 변경
       </h2>
 
-      <div style={{
-        background: '#ffffff',
-        border: '2px solid #000000',
-        padding: '16px'
-      }}>
+      <div className="eink-card" style={{ padding: '20px' }}>
         {/* User Info */}
         {user && (
-          <div style={{
+          <div className="eink-card" style={{
             marginBottom: '24px',
-            padding: '16px',
-            border: '2px solid #000000',
-            background: '#f5f5f5'
+            padding: '20px',
+            background: '#f8f8f8'
           }}>
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px'
+              gap: '14px'
             }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 600, width: '120px' }}>사용자명:</span>
-                <span style={{ fontSize: '16px' }}>{user.username}</span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  width: '120px',
+                  color: '#666666',
+                  letterSpacing: '0.2px'
+                }}>
+                  사용자명:
+                </span>
+                <span style={{
+                  fontSize: '16px',
+                  letterSpacing: '0.2px'
+                }}>
+                  {user.username}
+                </span>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 600, width: '120px' }}>이메일:</span>
-                <span style={{ fontSize: '16px' }}>{user.email}</span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  width: '120px',
+                  color: '#666666',
+                  letterSpacing: '0.2px'
+                }}>
+                  이메일:
+                </span>
+                <span style={{
+                  fontSize: '16px',
+                  letterSpacing: '0.2px'
+                }}>
+                  {user.email}
+                </span>
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span style={{ fontSize: '16px', fontWeight: 600, width: '120px' }}>권한:</span>
-                <span style={{ fontSize: '16px', fontWeight: user.role === 'admin' ? 700 : 400 }}>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  width: '120px',
+                  color: '#666666',
+                  letterSpacing: '0.2px'
+                }}>
+                  권한:
+                </span>
+                <span style={{
+                  fontSize: '16px',
+                  fontWeight: user.role === 'admin' ? 700 : 400,
+                  letterSpacing: '0.2px'
+                }}>
                   {user.role === 'admin' ? '관리자' : '일반 사용자'}
                 </span>
               </div>
             </div>
 
             {user.role === 'admin' && (
-              <div style={{ marginTop: '16px' }}>
+              <div style={{ marginTop: '20px' }}>
                 <Link
                   href="/admin"
                   className="eink-button-primary"
@@ -146,32 +180,36 @@ export default function EinkPasswordChangePage() {
           <h3 style={{
             fontSize: '22px',
             fontWeight: 700,
-            marginBottom: '16px'
+            marginBottom: '20px',
+            letterSpacing: '-0.3px'
           }}>
             비밀번호 변경
           </h3>
 
           {error && (
-            <div style={{
-              marginBottom: '16px',
+            <div className="eink-card" style={{
+              marginBottom: '20px',
               padding: '16px',
-              border: '3px solid #000000',
-              background: '#f5f5f5',
+              border: '2px solid #000000',
+              background: '#f8f8f8',
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              letterSpacing: '0.2px'
             }}>
               ❌ {error}
             </div>
           )}
 
           {successMessage && (
-            <div style={{
-              marginBottom: '16px',
+            <div className="eink-card" style={{
+              marginBottom: '20px',
               padding: '16px',
-              border: '3px solid #000000',
-              background: '#f5f5f5',
+              border: '2px solid #000000',
+              background: '#000000',
+              color: '#ffffff',
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              letterSpacing: '0.2px'
             }}>
               ✅ {successMessage}
             </div>
@@ -180,14 +218,16 @@ export default function EinkPasswordChangePage() {
           <form onSubmit={handleChangePassword} style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px'
+            gap: '20px'
           }}>
             <div>
               <label style={{
                 display: 'block',
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: 600,
-                marginBottom: '8px'
+                marginBottom: '10px',
+                color: '#666666',
+                letterSpacing: '0.3px'
               }}>
                 현재 비밀번호
               </label>
@@ -203,9 +243,11 @@ export default function EinkPasswordChangePage() {
             <div>
               <label style={{
                 display: 'block',
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: 600,
-                marginBottom: '8px'
+                marginBottom: '10px',
+                color: '#666666',
+                letterSpacing: '0.3px'
               }}>
                 새 비밀번호
               </label>
@@ -222,9 +264,11 @@ export default function EinkPasswordChangePage() {
             <div>
               <label style={{
                 display: 'block',
-                fontSize: '18px',
+                fontSize: '16px',
                 fontWeight: 600,
-                marginBottom: '8px'
+                marginBottom: '10px',
+                color: '#666666',
+                letterSpacing: '0.3px'
               }}>
                 새 비밀번호 확인
               </label>
@@ -244,6 +288,7 @@ export default function EinkPasswordChangePage() {
               className="eink-button-primary"
               style={{
                 width: '100%',
+                marginTop: '8px',
                 opacity: changing ? 0.5 : 1,
                 cursor: changing ? 'not-allowed' : 'pointer'
               }}

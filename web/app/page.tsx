@@ -458,7 +458,7 @@ export default function Home() {
           </div>
 
           {/* Filter Toggles */}
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3 flex-wrap justify-end">
             <button
               onClick={() => setShowRecentOnly(!showRecentOnly)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
@@ -468,7 +468,7 @@ export default function Home() {
               }`}
             >
               <span>{showRecentOnly ? '✅' : '☐'}</span>
-              <span>최근 일주일간 입고된 신작</span>
+              <span>최근 일주일 신작</span>
             </button>
 
             {user && user.downloadedBooks.length > 0 && (

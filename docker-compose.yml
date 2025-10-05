@@ -61,6 +61,19 @@ services:
     networks:
       - dream-library
 
+  enricher-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher-watcher
+    container_name: dream-library-enricher-watcher
+    volumes:
+      - ./books:/app/books
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - dream-library
+
   backup-cron:
     build:
       context: .

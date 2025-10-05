@@ -168,14 +168,14 @@ export default function EinkBookDetail() {
   return (
     <div className="eink-mode" style={{
       minHeight: '100vh',
-      background: '#ffffff',
+      background: '#f5f5f5',
       color: '#000000'
     }}>
       {/* Header */}
       <header style={{
         background: '#ffffff',
-        borderBottom: '2px solid #000000',
-        padding: '16px'
+        borderBottom: '1px solid #cccccc',
+        padding: '20px 16px'
       }}>
         <div style={{
           maxWidth: '1200px',
@@ -183,41 +183,56 @@ export default function EinkBookDetail() {
         }}>
           <Link
             href="/eink"
-            className="eink-button"
-            style={{ textDecoration: 'none' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#000000',
+              textDecoration: 'none',
+              fontSize: '18px',
+              fontWeight: 600,
+              padding: '12px 16px',
+              border: '1px solid #cccccc',
+              borderRadius: '8px',
+              background: '#ffffff',
+              minHeight: '48px'
+            }}
           >
-            ← Dream Library로 돌아가기
+            <span style={{ fontSize: '20px' }}>←</span>
+            <span>Dream Library로 돌아가기</span>
           </Link>
         </div>
       </header>
 
       {/* Book Detail */}
       <main style={{
-        maxWidth: '1000px',
+        maxWidth: '1200px',
         margin: '0 auto',
-        padding: '16px'
+        padding: '24px 16px'
       }}>
         <div style={{
           background: '#ffffff',
-          border: '2px solid #000000',
-          padding: '16px'
+          border: '1px solid #cccccc',
+          borderRadius: '12px',
+          padding: '24px'
         }}>
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '24px'
+            gap: '32px'
           }}>
             {/* Book Cover */}
             <div style={{
               width: '100%',
-              maxWidth: '300px',
+              maxWidth: '350px',
               margin: '0 auto',
-              background: '#f0f0f0',
+              background: '#f5f5f5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               padding: '24px',
-              border: '2px solid #000000',
+              border: '1px solid #d0d0d0',
+              borderRadius: '8px',
               position: 'relative'
             }}>
               {book.cover ? (
@@ -227,7 +242,7 @@ export default function EinkBookDetail() {
                   style={{
                     width: '100%',
                     height: 'auto',
-                    maxHeight: '400px',
+                    maxHeight: '500px',
                     objectFit: 'contain'
                   }}
                 />
@@ -237,13 +252,14 @@ export default function EinkBookDetail() {
               {isDownloaded && (
                 <div style={{
                   position: 'absolute',
-                  top: '8px',
-                  right: '8px',
+                  top: '12px',
+                  right: '12px',
                   background: '#000000',
                   color: '#ffffff',
                   padding: '8px 12px',
                   fontSize: '18px',
-                  fontWeight: 700
+                  fontWeight: 700,
+                  borderRadius: '6px'
                 }}>
                   ✓
                 </div>
@@ -253,134 +269,224 @@ export default function EinkBookDetail() {
             {/* Book Info */}
             <div>
               <h1 style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 fontWeight: 700,
-                marginBottom: '16px',
-                wordBreak: 'keep-all'
+                marginBottom: '24px',
+                wordBreak: 'keep-all',
+                lineHeight: 1.3
               }}>
                 {book.title}
               </h1>
 
-              {isDownloaded && (
+              {/* Book Metadata */}
+              <div style={{
+                background: '#f5f5f5',
+                border: '1px solid #d0d0d0',
+                borderRadius: '8px',
+                padding: '20px',
+                marginBottom: '24px'
+              }}>
                 <div style={{
-                  marginBottom: '16px',
-                  padding: '16px',
-                  border: '3px solid #000000',
-                  background: '#f5f5f5'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '14px'
                 }}>
-                  <div style={{
-                    fontSize: '18px',
-                    fontWeight: 700,
-                    marginBottom: '8px'
-                  }}>
-                    ✓ 다운로드한 도서입니다
+                  {book.author && (
+                    <div style={{ fontSize: '18px', lineHeight: 1.5 }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>저자</div>
+                      <div style={{ fontWeight: 600 }}>{book.author}</div>
+                    </div>
+                  )}
+
+                  {book.year && (
+                    <div style={{ fontSize: '18px', lineHeight: 1.5 }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>출판년도</div>
+                      <div>{book.year}</div>
+                    </div>
+                  )}
+
+                  {user && (
+                    <>
+                      <div style={{ fontSize: '18px', lineHeight: 1.5 }}>
+                        <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>파일형식</div>
+                        <div style={{
+                          display: 'inline-block',
+                          background: '#000000',
+                          color: '#ffffff',
+                          padding: '6px 14px',
+                          fontWeight: 700,
+                          fontSize: '16px',
+                          borderRadius: '4px'
+                        }}>
+                          EPUB
+                        </div>
+                      </div>
+
+                      <div style={{ fontSize: '18px', lineHeight: 1.5 }}>
+                        <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>파일크기</div>
+                        <div>{formatFileSize(book.size)}</div>
+                      </div>
+                    </>
+                  )}
+
+                  <div style={{ fontSize: '18px', lineHeight: 1.5 }}>
+                    <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>등록일</div>
+                    <div>{new Date(book.addedDate).toLocaleDateString('ko-KR')}</div>
                   </div>
-                  {downloadDate && (
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      color: '#333333'
-                    }}>
-                      다운로드 날짜: {new Date(downloadDate).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+
+                  {user && (
+                    <div style={{ fontSize: '16px', lineHeight: 1.5, wordBreak: 'break-all' }}>
+                      <div style={{ fontWeight: 700, marginBottom: '4px', color: '#555555' }}>파일명</div>
+                      <div>{book.filename}</div>
                     </div>
                   )}
                 </div>
-              )}
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px',
-                marginBottom: '16px'
-              }}>
-                {book.author && (
-                  <div style={{ fontSize: '18px' }}>
-                    <span style={{ fontWeight: 600 }}>저자: </span>
-                    <span>{book.author}</span>
-                  </div>
-                )}
-
-                {book.year && (
-                  <div style={{ fontSize: '18px' }}>
-                    <span style={{ fontWeight: 600 }}>출판년도: </span>
-                    <span>{book.year}</span>
-                  </div>
-                )}
-
-                {user && (
-                  <>
-                    <div style={{ fontSize: '18px' }}>
-                      <span style={{ fontWeight: 600 }}>파일형식: </span>
-                      <span className="eink-badge">EPUB</span>
-                    </div>
-
-                    <div style={{ fontSize: '18px' }}>
-                      <span style={{ fontWeight: 600 }}>파일크기: </span>
-                      <span>{formatFileSize(book.size)}</span>
-                    </div>
-                  </>
-                )}
-
-                <div style={{ fontSize: '18px' }}>
-                  <span style={{ fontWeight: 600 }}>등록일: </span>
-                  <span>{new Date(book.addedDate).toLocaleDateString('ko-KR')}</span>
-                </div>
-
-                {user && (
-                  <div style={{ fontSize: '16px', wordBreak: 'break-all' }}>
-                    <span style={{ fontWeight: 600 }}>파일명: </span>
-                    <span>{book.filename}</span>
-                  </div>
-                )}
               </div>
+
+              {/* Download Section */}
+              {user && (
+                <div style={{
+                  background: '#f5f5f5',
+                  border: '1px solid #d0d0d0',
+                  borderRadius: '8px',
+                  padding: '24px',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '20px',
+                    letterSpacing: '0.05em'
+                  }}>
+                    다운로드
+                  </h3>
+
+                  {/* Downloaded Status Badge */}
+                  {isDownloaded && (
+                    <div style={{
+                      marginBottom: '16px',
+                      padding: '20px',
+                      border: '1px solid #d0d0d0',
+                      borderRadius: '8px',
+                      background: '#f5f5f5'
+                    }}>
+                      <div style={{
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}>
+                        <span style={{ fontSize: '24px' }}>✓</span>
+                        <span>다운로드 완료</span>
+                      </div>
+                      {downloadDate && (
+                        <div style={{
+                          fontSize: '16px',
+                          fontWeight: 600,
+                          color: '#333333',
+                          marginLeft: '34px'
+                        }}>
+                          {new Date(downloadDate).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px'
+                  }}>
+                    {/* Main Download Button */}
+                    <button
+                      onClick={handleDownload}
+                      style={{
+                        width: '100%',
+                        background: '#000000',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '18px 24px',
+                        fontSize: '20px',
+                        fontWeight: 700,
+                        minHeight: '60px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <span style={{ fontSize: '24px' }}>⬇</span>
+                      <span>EPUB 다운로드</span>
+                    </button>
+
+                    {/* Toggle Download Status Button */}
+                    <button
+                      onClick={toggleDownloadStatus}
+                      style={{
+                        width: '100%',
+                        background: isDownloaded ? '#e8e8e8' : '#ffffff',
+                        color: '#000000',
+                        border: '1px solid #cccccc',
+                        borderRadius: '8px',
+                        padding: '16px 24px',
+                        fontSize: '18px',
+                        fontWeight: 600,
+                        minHeight: '56px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '10px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <span style={{ fontSize: '22px' }}>
+                        {isDownloaded ? '✓' : '☐'}
+                      </span>
+                      <span>
+                        {isDownloaded ? '다운로드 완료 표시 해제' : '다운로드 완료로 표시'}
+                      </span>
+                    </button>
+
+                    {/* Info Text */}
+                    <p style={{
+                      fontSize: '14px',
+                      color: '#555555',
+                      textAlign: 'center',
+                      marginTop: '8px',
+                      lineHeight: 1.5
+                    }}>
+                      다운로드 완료 표시는 읽은 책을 관리하는 데 도움이 됩니다
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
               <div style={{ marginBottom: '24px' }}>
                 <h2 style={{
-                  fontSize: '22px',
+                  fontSize: '24px',
                   fontWeight: 700,
-                  marginBottom: '12px'
+                  marginBottom: '16px'
                 }}>
                   책 소개
                 </h2>
-                <p style={{
+                <div style={{
                   fontSize: '18px',
-                  lineHeight: 1.7,
+                  lineHeight: 1.8,
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'keep-all'
                 }}>
                   {book.description || '아직 등록된 책 소개가 없습니다.'}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              {user && (
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px'
-                }}>
-                  <button
-                    onClick={handleDownload}
-                    className="eink-button-primary"
-                    style={{ width: '100%' }}
-                  >
-                    ⬇ EPUB 다운로드
-                  </button>
-
-                  <button
-                    onClick={toggleDownloadStatus}
-                    className={isDownloaded ? 'eink-button-primary' : 'eink-button'}
-                    style={{ width: '100%' }}
-                  >
-                    {isDownloaded ? '✅ 다운로드 표시 해제' : '☐ 다운로드 완료 표시'}
-                  </button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>

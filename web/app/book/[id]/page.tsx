@@ -123,28 +123,18 @@ export default function BookDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 text-yellow-400/70 text-3xl animate-pulse">✨</div>
-          <div className="absolute top-40 right-20 text-yellow-300/60 text-2xl">⭐</div>
-          <div className="absolute bottom-40 left-1/3 text-yellow-400/60 text-3xl">✨</div>
-        </div>
-        <div className="text-gray-800 text-xl font-medium relative z-10">불러오는 중...</div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-600 text-lg font-medium">불러오는 중...</div>
       </div>
     );
   }
 
   if (!book) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 text-yellow-400/70 text-3xl animate-pulse">✨</div>
-          <div className="absolute top-40 right-20 text-yellow-300/60 text-2xl">⭐</div>
-          <div className="absolute bottom-40 left-1/3 text-yellow-400/60 text-3xl">✨</div>
-        </div>
-        <div className="text-center relative z-10">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
           <div className="text-gray-900 text-xl font-semibold mb-4">책을 찾을 수 없습니다</div>
-          <Link href="/" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/" className="text-slate-700 hover:text-slate-900 font-medium">
             ← Dream Library로 돌아가기
           </Link>
         </div>
@@ -153,49 +143,39 @@ export default function BookDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 relative overflow-hidden">
-      {/* Background Stars */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 text-yellow-400/70 text-3xl animate-pulse">✨</div>
-        <div className="absolute top-40 right-20 text-yellow-300/60 text-2xl">⭐</div>
-        <div className="absolute top-60 left-1/4 text-yellow-400/50 text-4xl">✨</div>
-        <div className="absolute bottom-40 left-1/3 text-yellow-400/60 text-3xl animate-pulse">✨</div>
-        <div className="absolute bottom-60 right-1/4 text-yellow-300/50 text-2xl">⭐</div>
-        <div className="absolute top-1/3 left-1/5 text-yellow-400/50 text-2xl">⭐</div>
-        <div className="absolute top-2/3 right-1/5 text-yellow-300/60 text-3xl">✨</div>
-        <div className="absolute bottom-1/3 left-2/3 text-yellow-300/70 text-2xl animate-pulse">✨</div>
-      </div>
-
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-10">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <Link href="/" className="text-blue-600 hover:text-blue-700 flex items-center gap-2 font-medium">
-            <span>←</span>
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-5">
+          <Link href="/" className="text-slate-700 hover:text-slate-900 flex items-center gap-2 font-medium transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
             <span>Dream Library로 돌아가기</span>
           </Link>
         </div>
       </header>
 
       {/* Book Detail */}
-      <main className="max-w-5xl mx-auto px-4 py-12 relative z-10">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-300">
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
           <div className="md:flex">
             {/* Book Cover */}
-            <div className="md:w-1/3 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-12 relative overflow-hidden">
+            <div className="md:w-2/5 bg-gray-50 flex items-center justify-center p-8 relative">
               {book.cover ? (
                 <img
                   src={`/api/covers/${book.cover}`}
                   alt={book.title}
-                  className="w-full h-auto object-contain max-h-[500px] shadow-xl rounded-lg"
+                  className="w-full h-auto object-contain max-h-[600px] rounded-lg shadow-md"
                 />
               ) : (
                 <div className="text-9xl text-gray-300">📖</div>
               )}
               {/* Downloaded Badge */}
               {isDownloaded && (
-                <div className="absolute top-4 right-4">
-                  <div className="bg-green-500 text-white rounded-full p-3 shadow-lg">
-                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <div className="absolute top-6 right-6">
+                  <div className="bg-green-600 text-white rounded-full p-2.5 shadow-lg">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -204,108 +184,126 @@ export default function BookDetail() {
             </div>
 
             {/* Book Info */}
-            <div className="md:w-2/3 p-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{book.title}</h1>
+            <div className="md:w-3/5 p-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">{book.title}</h1>
 
-              {/* Downloaded Status Badge */}
-              {isDownloaded && (
-                <div className="mb-4 bg-green-50 border-2 border-green-300 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xl">✅</span>
-                    <span className="font-bold text-green-900">다운로드한 도서입니다</span>
+              {/* Book Metadata */}
+              <div className="bg-gray-50 rounded-lg p-5 mb-6 border border-gray-100">
+                <div className="space-y-3">
+                  {book.author && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">저자</span>
+                      <span className="text-gray-900 font-medium">{book.author}</span>
+                    </div>
+                  )}
+
+                  {book.year && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">출판년도</span>
+                      <span className="text-gray-900">{book.year}</span>
+                    </div>
+                  )}
+
+                  {user && (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">파일형식</span>
+                        <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded text-sm font-medium">
+                          EPUB
+                        </span>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">파일크기</span>
+                        <span className="text-gray-900">{formatFileSize(book.size)}</span>
+                      </div>
+                    </>
+                  )}
+
+                  <div className="flex items-start gap-3">
+                    <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">등록일</span>
+                    <span className="text-gray-900">
+                      {new Date(book.addedDate).toLocaleDateString('ko-KR')}
+                    </span>
                   </div>
-                  {downloadDate && (
-                    <div className="text-sm text-green-700 ml-7">
-                      다운로드 날짜: {new Date(downloadDate).toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+
+                  {user && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-gray-500 text-sm font-medium w-20 flex-shrink-0 pt-0.5">파일명</span>
+                      <span className="text-gray-700 text-sm break-all">{book.filename}</span>
                     </div>
                   )}
                 </div>
-              )}
-
-              <div className="space-y-4 mb-8">
-                {book.author && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-600 font-medium">저자:</span>
-                    <span className="text-gray-900 font-semibold">{book.author}</span>
-                  </div>
-                )}
-
-                {book.year && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-600 font-medium">출판년도:</span>
-                    <span className="text-gray-900 font-medium">{book.year}</span>
-                  </div>
-                )}
-
-                {user && (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-600 font-medium">파일형식:</span>
-                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
-                        EPUB
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <span className="text-gray-600 font-medium">파일크기:</span>
-                      <span className="text-gray-900 font-medium">{formatFileSize(book.size)}</span>
-                    </div>
-                  </>
-                )}
-
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600 font-medium">등록일:</span>
-                  <span className="text-gray-900 font-medium">
-                    {new Date(book.addedDate).toLocaleDateString('ko-KR')}
-                  </span>
-                </div>
-
-                {user && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-gray-600 font-medium">파일명:</span>
-                    <span className="text-gray-800 text-sm break-all">{book.filename}</span>
-                  </div>
-                )}
               </div>
+
+              {/* Download Section */}
+              {user && (
+                <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">다운로드</h3>
+
+                  {/* Downloaded Status Badge */}
+                  {isDownloaded && (
+                    <div className="mb-4 bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-semibold text-green-900">다운로드 완료</span>
+                      </div>
+                      {downloadDate && (
+                        <div className="text-sm text-green-700 ml-7">
+                          {new Date(downloadDate).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {/* Main Download Button */}
+                    <button
+                      onClick={handleDownload}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      <span>EPUB 다운로드</span>
+                    </button>
+
+                    {/* Toggle Download Status Button */}
+                    <button
+                      onClick={toggleDownloadStatus}
+                      className={`w-full font-medium py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2.5 border ${
+                        isDownloaded
+                          ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100'
+                          : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <svg className={`w-5 h-5 ${isDownloaded ? 'text-green-600' : 'text-slate-400'}`} fill={isDownloaded ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isDownloaded ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'} />
+                      </svg>
+                      <span>{isDownloaded ? '다운로드 완료 표시 해제' : '다운로드 완료로 표시'}</span>
+                    </button>
+
+                    {/* Info Text */}
+                    <p className="text-xs text-gray-500 text-center pt-2">
+                      다운로드 완료 표시는 읽은 책을 관리하는 데 도움이 됩니다
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-900 mb-3">책 소개</h2>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {book.description || '아직 등록된 책 소개가 없습니다. 나중에 책 소개를 추가할 수 있습니다!'}
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              {user && (
-                <div className="space-y-3">
-                  {/* Download Button */}
-                  <button
-                    onClick={handleDownload}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-md hover:shadow-lg"
-                  >
-                    <span>⬇️</span>
-                    <span>EPUB 다운로드</span>
-                  </button>
-
-                  {/* Toggle Download Status Button */}
-                  <button
-                    onClick={toggleDownloadStatus}
-                    className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3 border-2 ${
-                      isDownloaded
-                        ? 'bg-green-100 border-green-400 text-green-800 hover:bg-green-200'
-                        : 'bg-white border-gray-400 text-gray-800 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span>{isDownloaded ? '✅' : '☐'}</span>
-                    <span>{isDownloaded ? '다운로드 표시 해제' : '다운로드 완료 표시'}</span>
-                  </button>
+              <div className="mb-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-3">책 소개</h2>
+                <div className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
+                  {book.description || '아직 등록된 책 소개가 없습니다.'}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
