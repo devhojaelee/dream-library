@@ -81,10 +81,9 @@ export default function EinkMyPageLayout({
         {/* Mobile: Stack layout, Desktop: Horizontal layout */}
         <div style={{
           display: 'flex',
-          flexDirection: 'column',
-          gap: '12px'
-        }} className="md:flex-row md:items-center md:justify-between md:gap-0">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          flexDirection: 'column'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
             <div style={{
               width: '40px',
               height: '40px',
@@ -95,7 +94,8 @@ export default function EinkMyPageLayout({
               justifyContent: 'center',
               color: '#ffffff',
               fontSize: '20px',
-              fontWeight: 700
+              fontWeight: 700,
+              marginRight: '12px'
             }}>
               M
             </div>
@@ -109,33 +109,55 @@ export default function EinkMyPageLayout({
           </div>
           <Link
             href="/eink"
-            className="eink-button"
-            style={{ textDecoration: 'none', display: 'flex', justifyContent: 'flex-end' }}
+            style={{
+              textDecoration: 'none',
+              display: 'inline-block',
+              color: '#000000',
+              background: '#ffffff',
+              border: '2px solid #333333',
+              minHeight: '48px',
+              minWidth: '48px',
+              fontSize: '16px',
+              padding: '10px 20px',
+              cursor: 'pointer',
+              fontWeight: 500,
+              alignSelf: 'flex-end',
+              boxSizing: 'border-box'
+            }}
           >
             홈
           </Link>
         </div>
 
         {/* Mobile: Horizontal scroll navigation */}
-        <nav className="md:hidden" style={{ marginTop: '12px', overflowX: 'auto' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            {navItems.map((item) => {
+        <nav style={{ marginTop: '12px', overflowX: 'auto' }}>
+          <div style={{ display: 'flex' }}>
+            {navItems.map((item, index) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={isActive ? 'eink-button-primary' : 'eink-button'}
                   style={{
                     textDecoration: 'none',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
                     fontSize: '16px',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    background: isActive ? '#000000' : '#ffffff',
+                    color: isActive ? '#ffffff' : '#000000',
+                    border: isActive ? '2px solid #000000' : '2px solid #333333',
+                    minHeight: '48px',
+                    minWidth: '48px',
+                    padding: '10px 20px',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                    borderRadius: '6px',
+                    boxSizing: 'border-box',
+                    marginRight: index < navItems.length - 1 ? '8px' : '0'
                   }}
                 >
-                  <span style={{ fontSize: '20px' }}>{item.icon}</span>
+                  <span style={{ fontSize: '20px', marginRight: '8px' }}>{item.icon}</span>
                   <span>{item.label}</span>
                 </Link>
               );
@@ -145,38 +167,7 @@ export default function EinkMyPageLayout({
       </header>
 
       <div style={{ display: 'flex' }}>
-        {/* Sidebar - Desktop only */}
-        <aside className="hidden md:block" style={{
-          width: '200px',
-          background: '#ffffff',
-          borderRight: '2px solid #000000',
-          minHeight: 'calc(100vh - 89px)'
-        }}>
-          <nav style={{ padding: '8px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {navItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={isActive ? 'eink-button-primary' : 'eink-button'}
-                    style={{
-                      textDecoration: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '16px'
-                    }}
-                  >
-                    <span style={{ fontSize: '20px' }}>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-        </aside>
+        {/* Sidebar - Hidden on mobile, removed completely */}
 
         {/* Main Content */}
         <main style={{
