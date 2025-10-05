@@ -47,21 +47,19 @@ npm run lint
 
 ### Docker Development
 ```bash
-# Start web server + auto metadata enrichment watcher
+# Start all services (web + crawler + enricher-watcher + backup)
 docker-compose up -d
 
-# Run crawler (Z-Library downloads)
-docker-compose --profile crawler up crawler
-
-# Manual metadata enrichment
+# Manual metadata enrichment (if needed)
 docker-compose --profile enricher up enricher
 
 # View logs
 docker-compose logs -f web
+docker-compose logs -f crawler
 docker-compose logs -f enricher-watcher
 
 # Rebuild specific service
-docker-compose build enricher-watcher
+docker-compose build crawler
 
 # Stop all services
 docker-compose down
@@ -103,14 +101,20 @@ web/data/           # Persistent user data
    - Read-only mount: `/books`
    - Read-write mount: `/web/data`
 
-2. **enricher-watcher**: Auto metadata enrichment trigger
-   - Watches for `download_status.json` creation (crawler time limit)
+2. **crawler**: Automated Z-Library downloads
+   - Auto-starts on server boot
+   - Runs `book_downloader.py` in infinite loop
+   - Downloads 10 books → hits limit → sleeps 23h → repeats
+   - Creates `download_status.json` when limit detected
+
+3. **enricher-watcher**: Auto metadata enrichment trigger
+   - Watches for `download_status.json` creation
    - Waits 10 seconds after detection
    - Automatically runs `enrich_metadata.py`
-
-3. **crawler**: Z-Library downloads (profile-based)
+   - Fills missing covers and descriptions
 
 4. **enricher**: Manual metadata enrichment (profile-based)
+   - Run manually when needed: `docker-compose --profile enricher up enricher`
 
 5. **backup-cron**: User data backup (daily at 00:00 KST)
 
@@ -129,11 +133,15 @@ web/data/           # Persistent user data
 4. Validate and resize cover images (min 200px width)
 5. Save JSON metadata + cover files
 
-### Automated Enrichment Trigger
-1. Crawler detects download limit → creates `download_status.json`
-2. enricher-watcher detects file → waits 10 seconds
-3. Automatically runs `enrich_metadata.py` → fills missing metadata
-4. Status file cleaned up after wait period
+### Automated Download & Enrichment Flow
+1. **Server starts** → crawler auto-starts
+2. **Crawler downloads 10 books** → hits time limit
+3. **Creates `download_status.json`** with wait time
+4. **enricher-watcher detects file** → waits 10 seconds
+5. **Runs `enrich_metadata.py`** → fills missing covers/descriptions
+6. **Crawler sleeps 23h** → waits for limit to expire
+7. **Deletes status file** → repeats from step 2
+8. **Infinite loop** → continuous automated downloads
 
 ## Key Technical Details
 

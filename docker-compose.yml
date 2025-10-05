@@ -28,8 +28,7 @@ services:
       - ./books:/app/books  # Read-write mount for crawler
     environment:
       - PYTHONUNBUFFERED=1
-    profiles:
-      - crawler  # Only runs when explicitly specified
+    restart: unless-stopped  # Auto-start on server boot, restart on crash
     networks:
       - dream-library
 
