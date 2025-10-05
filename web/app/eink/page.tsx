@@ -313,13 +313,13 @@ export default function EinkHome() {
             flexDirection: 'column',
             gap: '16px'
           }}>
+            {/* Mobile: Stack layout, Desktop: Horizontal layout */}
             <div style={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px'
-            }}>
+              flexDirection: 'column',
+              gap: '12px'
+            }}
+            className="md:flex-row md:justify-between md:items-center">
               <div
                 onClick={() => window.location.href = '/eink'}
                 style={{ cursor: 'pointer' }}
@@ -338,7 +338,7 @@ export default function EinkHome() {
                 </p>
               </div>
 
-              <div className="eink-header-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="eink-header-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                 <Link
                   href="/"
                   className="eink-button"
@@ -449,28 +449,35 @@ export default function EinkHome() {
               maxWidth: '1200px',
               margin: '0 auto',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '10px',
+              gap: '4px',
               fontSize: '15px',
               fontWeight: 500,
-              flexWrap: 'wrap',
-              letterSpacing: '0.2px'
-            }}>
+              letterSpacing: '0.2px',
+              textAlign: 'center'
+            }}
+            className="md:flex-row md:gap-[10px]">
               {encouragementMsg && (
-                <>
-                  <span>🎉</span>
-                  <span>이번 달 {getThisMonthDownloads()}권 · {encouragementMsg}</span>
-                </>
+                <span>이번 달 {getThisMonthDownloads()}권 다운로드</span>
               )}
-              {encouragementMsg && downloadStatus && (
-                <span style={{ margin: '0 6px', opacity: 0.5 }}>|</span>
+              {encouragementMsg && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🎉</span>
+                  <span>{encouragementMsg}</span>
+                </div>
               )}
               {downloadStatus && (
-                <span>
-                  {downloadStatus.hours > 0 && `${downloadStatus.hours}시간 `}
-                  {downloadStatus.minutes}분 {downloadStatus.seconds}초 후에 신작 10권이 입고됩니다
-                </span>
+                <>
+                  {encouragementMsg && <span style={{ margin: '0 6px', opacity: 0.5 }}>|</span>}
+                  <span>
+                    {downloadStatus.hours > 0
+                      ? `${downloadStatus.hours}시간`
+                      : `${downloadStatus.minutes}분`
+                    } 후 신작 10권 입고
+                  </span>
+                </>
               )}
             </div>
           </div>

@@ -345,106 +345,119 @@ export default function Home() {
 
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between">
-          <div
-            onClick={() => window.location.href = '/'}
-            className="hover:opacity-80 transition-opacity cursor-pointer"
-          >
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">✨ Dream Library</h1>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link
-              href="/eink"
-              className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors shadow-sm whitespace-nowrap"
-              title="E-ink 리더기 최적화 모드"
+        <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
+          {/* Mobile: Stack layout, Desktop: Horizontal layout */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
+            <div
+              onClick={() => window.location.href = '/'}
+              className="hover:opacity-80 transition-opacity cursor-pointer"
             >
-              📖 E-Reader
-            </Link>
-            {user ? (
-              <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors border border-gray-300 shadow-sm"
-                >
-                  <span className="font-semibold">👤 마이페이지</span>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">✨ Dream Library</h1>
+              <p className="text-xs md:text-sm text-gray-600 font-medium mt-1 tracking-wider ml-6 md:ml-9">STANDARD MODE</p>
+            </div>
+            <div className="flex items-center gap-2 md:gap-4 justify-end">
+              <Link
+                href="/eink"
+                className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors shadow-sm whitespace-nowrap min-h-[44px] flex items-center justify-center"
+                title="E-ink 리더기 최적화 모드"
+              >
+                📖 E-Reader
+              </Link>
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-3 py-2 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors border border-gray-300 shadow-sm min-h-[44px]"
+                  >
+                    <span className="font-semibold">👤 마이페이지</span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                {isUserMenuOpen && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-[60]"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[70]">
-                      <div className="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
-                        {user.username} 님
-                      </div>
-                      <Link
-                        href="/mypage"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  {isUserMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-[60]"
                         onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        마이페이지
-                      </Link>
-                      {user.role === 'admin' && (
+                      />
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[70]">
+                        <div className="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
+                          {user.username} 님
+                        </div>
                         <Link
-                          href="/admin"
-                          className="block px-4 py-2 text-sm text-blue-700 hover:bg-gray-100 transition-colors font-medium"
+                          href="/mypage"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors min-h-[44px] flex items-center"
                           onClick={() => setIsUserMenuOpen(false)}
                         >
-                          🔧 관리자 페이지
+                          마이페이지
                         </Link>
-                      )}
-                      <button
-                        onClick={() => {
-                          setIsUserMenuOpen(false);
-                          handleLogout();
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      >
-                        로그아웃
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <Link
-                href="/auth"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors shadow-sm whitespace-nowrap"
-              >
-                로그인
-              </Link>
-            )}
+                        {user.role === 'admin' && (
+                          <Link
+                            href="/admin"
+                            className="block px-4 py-2 text-sm text-blue-700 hover:bg-gray-100 transition-colors font-medium min-h-[44px] flex items-center"
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            🔧 관리자 페이지
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            handleLogout();
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors min-h-[44px] flex items-center"
+                        >
+                          로그아웃
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors shadow-sm whitespace-nowrap min-h-[44px] flex items-center justify-center"
+                >
+                  로그인
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Encouragement Banner */}
         {user && (encouragementMsg || downloadStatus) && (
           <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border-t border-gray-200 py-2">
-            <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2 flex-wrap">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-center">
+                {encouragementMsg && (
+                  <span className="text-sm font-medium text-gray-700 text-center md:text-left">
+                    이번 달 <span className="font-semibold text-purple-600">{getThisMonthDownloads()}권</span> 다운로드
+                  </span>
+                )}
+                {downloadStatus && (
+                  <>
+                    {encouragementMsg && <span className="text-gray-400 mx-1">|</span>}
+                    <span className="text-sm font-medium text-gray-700 text-center md:text-left">
+                      <span className="font-semibold text-purple-600">
+                        {downloadStatus.hours > 0
+                          ? `${downloadStatus.hours}시간`
+                          : `${downloadStatus.minutes}분`
+                        }
+                      </span>
+                      {' '}후 신작 10권 입고
+                    </span>
+                  </>
+                )}
+              </div>
               {encouragementMsg && (
-                <>
+                <div className="flex items-center gap-2 text-center md:text-left">
                   <span className="text-base">🎉</span>
                   <span className="text-sm font-medium text-gray-700">
-                    이번 달 <span className="font-semibold text-purple-600">{getThisMonthDownloads()}권</span> 다운로드 · {encouragementMsg}
+                    {encouragementMsg}
                   </span>
-                </>
-              )}
-              {encouragementMsg && downloadStatus && (
-                <span className="text-gray-400 mx-1">|</span>
-              )}
-              {downloadStatus && (
-                <span className="text-sm font-medium text-gray-700">
-                  <span className="font-semibold text-purple-600">
-                    {downloadStatus.hours > 0 && `${downloadStatus.hours}시간 `}
-                    {downloadStatus.minutes}분 {downloadStatus.seconds}초
-                  </span>
-                  {' '}후에 신작 10권이 입고됩니다
-                </span>
+                </div>
               )}
             </div>
           </div>
