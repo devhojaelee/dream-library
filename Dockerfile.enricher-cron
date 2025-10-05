@@ -15,10 +15,11 @@ RUN pip install --no-cache-dir \
 COPY enrich_metadata.py /app/
 
 # Create cron job to run at midnight every day (KST)
-RUN echo "0 0 * * * cd /app && python enrich_metadata.py >> /var/log/cron.log 2>&1" > /etc/cron.d/enricher-cron && \
+RUN echo "PATH=/usr/local/bin:/usr/bin:/bin" > /etc/cron.d/enricher-cron && \
+    echo "0 0 * * * cd /app && python3 enrich_metadata.py >> /var/log/cron.log 2>&1" >> /etc/cron.d/enricher-cron && \
     chmod 0644 /etc/cron.d/enricher-cron && \
     crontab /etc/cron.d/enricher-cron && \
     touch /var/log/cron.log
 
 # Run cron in foreground with initial execution
-CMD ["sh", "-c", "python /app/enrich_metadata.py >> /var/log/cron.log 2>&1 && cron && tail -f /var/log/cron.log"]
+CMD ["sh", "-c", "python3 /app/enrich_metadata.py >> /var/log/cron.log 2>&1 && cron && tail -f /var/log/cron.log"]
