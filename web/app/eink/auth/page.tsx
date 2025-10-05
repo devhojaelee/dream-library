@@ -59,15 +59,32 @@ export default function EinkAuthPage() {
   };
 
   // 사용자명 blur 이벤트
-  const handleUsernameBlur = () => {
+  const handleUsernameBlur = async () => {
     if (!username) {
       setUsernameError('');
       return;
     }
     if (!validateUsername(username)) {
       setUsernameError('3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다');
-    } else {
-      setUsernameError('');
+      return;
+    }
+
+    // 중복 확인
+    try {
+      const res = await fetch('/api/auth/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username }),
+      });
+      const data = await res.json();
+
+      if (!data.available) {
+        setUsernameError('이미 사용 중인 아이디입니다');
+      } else {
+        setUsernameError('');
+      }
+    } catch (err) {
+      console.error('Username check failed:', err);
     }
   };
 
