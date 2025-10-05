@@ -546,7 +546,7 @@ export default function EinkHome() {
               margin: 0,
               letterSpacing: '0.2px'
             }}>
-              {page}페이지 / 총 {Math.ceil(getFilteredBooks().length / BOOKS_PER_PAGE)}페이지
+              {page}페이지 / 총 {Math.ceil(getFilteredBooks().length / booksPerPage)}페이지
             </p>
           </div>
 
