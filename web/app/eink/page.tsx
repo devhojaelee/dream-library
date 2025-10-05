@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import encouragementsData from '@/data/encouragements.json';
 
 interface Book {
   id: number;
@@ -19,7 +20,10 @@ interface Book {
 interface User {
   id: string;
   username: string;
+  email: string;
+  role: string;
   downloadedBooks: number[];
+  downloadHistory?: { bookId: number; downloadedAt: string }[];
 }
 
 export default function EinkHome() {
@@ -30,6 +34,8 @@ export default function EinkHome() {
   const [user, setUser] = useState<User | null>(null);
   const [hideDownloaded, setHideDownloaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [encouragementMsg, setEncouragementMsg] = useState('');
   const router = useRouter();
   const BOOKS_PER_PAGE = 10;
 
@@ -48,7 +54,26 @@ export default function EinkHome() {
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {
-        setUser(data.user);
+        if (data.user) {
+          setUser(data.user);
+
+          // 이번 달 다운로드 수 계산
+          const now = new Date();
+          const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          const monthlyCount = (data.user.downloadHistory || []).filter((download: { downloadedAt: string }) => {
+            const date = new Date(download.downloadedAt);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return monthKey === thisMonth;
+          }).length;
+
+          // 격려 메시지 한 번만 설정
+          const tier = encouragementsData.tiers.find(t => monthlyCount >= t.min && monthlyCount <= t.max);
+          if (tier && tier.messages.length > 0) {
+            const randomIndex = Math.floor(Math.random() * tier.messages.length);
+            const message = tier.messages[randomIndex].replace('{count}', String(monthlyCount));
+            setEncouragementMsg(message);
+          }
+        }
       })
       .catch(err => console.error('Error loading user:', err));
 
@@ -158,6 +183,20 @@ export default function EinkHome() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  // 이번 달 다운로드 수 계산
+  const getThisMonthDownloads = (): number => {
+    if (!user?.downloadHistory) return 0;
+
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    return user.downloadHistory.filter(download => {
+      const date = new Date(download.downloadedAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return monthKey === thisMonth;
+    }).length;
+  };
+
   if (loading) {
     return (
       <div style={{
@@ -188,72 +227,153 @@ export default function EinkHome() {
       {/* Header */}
       <header style={{
         background: '#ffffff',
-        borderBottom: '2px solid #000000',
-        padding: '16px'
+        borderBottom: '2px solid #000000'
       }}>
         <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px'
+          padding: '16px'
         }}>
           <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
+            flexDirection: 'column',
             gap: '12px'
           }}>
-            <div
-              onClick={() => window.location.href = '/eink'}
-              style={{
-                cursor: 'pointer'
-              }}
-            >
-              <h1 style={{
-                fontSize: '28px',
-                fontWeight: 700,
-                margin: 0,
-                color: '#000000'
-              }}>
-                Dream Library (E-Reader)
-              </h1>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <Link
-                href="/"
-                className="eink-button"
-                style={{ textDecoration: 'none' }}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}>
+              <div
+                onClick={() => window.location.href = '/eink'}
+                style={{
+                  cursor: 'pointer'
+                }}
               >
-                일반 모드
-              </Link>
+                <h1 style={{
+                  fontSize: '28px',
+                  fontWeight: 700,
+                  margin: 0,
+                  color: '#000000'
+                }}>
+                  Dream Library (E-Reader)
+                </h1>
+              </div>
 
-              {user ? (
-                <>
-                  <span style={{ fontSize: '16px', fontWeight: 600 }}>
-                    {user.username}님
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="eink-button"
-                  >
-                    로그아웃
-                  </button>
-                </>
-              ) : (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Link
-                  href="/eink/auth"
-                  className="eink-button-primary"
+                  href="/"
+                  className="eink-button"
                   style={{ textDecoration: 'none' }}
                 >
-                  로그인
+                  일반 모드
                 </Link>
-              )}
+
+                {user ? (
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="eink-button"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      <span>👤 마이페이지</span>
+                      <span>▼</span>
+                    </button>
+
+                    {isUserMenuOpen && (
+                      <>
+                        <div
+                          style={{
+                            position: 'fixed',
+                            inset: 0,
+                            zIndex: 60,
+                          }}
+                          onClick={() => setIsUserMenuOpen(false)}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute',
+                            right: 0,
+                            marginTop: '8px',
+                            width: '200px',
+                            backgroundColor: 'white',
+                            border: '2px solid black',
+                            zIndex: 70,
+                          }}
+                        >
+                          <div style={{ padding: '12px 16px', fontWeight: 600, borderBottom: '2px solid black' }}>
+                            {user.username} 님
+                          </div>
+                          <Link
+                            href="/eink/mypage"
+                            className="eink-menu-item"
+                            style={{ textDecoration: 'none', display: 'block', padding: '12px 16px', borderBottom: '1px solid black' }}
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
+                            마이페이지
+                          </Link>
+                          {user.role === 'admin' && (
+                            <Link
+                              href="/admin"
+                              className="eink-menu-item"
+                              style={{ textDecoration: 'none', display: 'block', padding: '12px 16px', borderBottom: '1px solid black', fontWeight: 600 }}
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              🔧 관리자 페이지
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => {
+                              setIsUserMenuOpen(false);
+                              handleLogout();
+                            }}
+                            style={{ width: '100%', textAlign: 'left', padding: '12px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '16px' }}
+                          >
+                            로그아웃
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href="/eink/auth"
+                    className="eink-button-primary"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    로그인
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Encouragement Banner */}
+        {user && encouragementMsg && (
+          <div style={{
+            background: '#000000',
+            color: '#ffffff',
+            padding: '12px 16px',
+            borderTop: '2px solid #000000'
+          }}>
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontSize: '16px',
+              fontWeight: 600
+            }}>
+              <span>🎉</span>
+              <span>이번 달 {getThisMonthDownloads()}권 · {encouragementMsg}</span>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
@@ -262,6 +382,7 @@ export default function EinkHome() {
         margin: '0 auto',
         padding: '16px'
       }}>
+
         {/* Search Bar */}
         <div style={{ marginBottom: '16px' }}>
           <div style={{ position: 'relative' }}>
@@ -324,7 +445,7 @@ export default function EinkHome() {
               className={hideDownloaded ? 'eink-button-primary' : 'eink-button'}
               style={{ marginTop: '8px' }}
             >
-              {hideDownloaded ? '☑' : '☐'} 소장 도서 제외
+              {hideDownloaded ? '☑' : '☐'} 다운로드한 도서 제외
             </button>
           )}
         </div>
@@ -392,11 +513,11 @@ export default function EinkHome() {
                           right: '8px',
                           background: '#000000',
                           color: '#ffffff',
-                          padding: '4px 8px',
+                          padding: '6px 10px',
                           fontSize: '14px',
                           fontWeight: 700
                         }}>
-                          ✓
+                          ✓ 다운로드 완료
                         </div>
                       )}
                     </div>
@@ -427,14 +548,16 @@ export default function EinkHome() {
                         {book.author}
                       </p>
                     )}
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '14px'
-                    }}>
-                      <span className="eink-badge">EPUB</span>
-                      <span style={{ fontWeight: 600 }}>{formatFileSize(book.size)}</span>
-                    </div>
+                    {user && (
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '14px'
+                      }}>
+                        <span className="eink-badge">EPUB</span>
+                        <span style={{ fontWeight: 600 }}>{formatFileSize(book.size)}</span>
+                      </div>
+                    )}
                   </div>
                 </Link>
               ))}

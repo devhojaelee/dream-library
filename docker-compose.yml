@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build:
@@ -14,6 +12,9 @@ services:
     environment:
       - NODE_ENV=production
       - BOOKS_DIR=/books
+      - EMAIL_USER=${EMAIL_USER:-hoje0711@naver.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-DSENDBPW412N}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
     restart: unless-stopped
     networks:
       - dream-library

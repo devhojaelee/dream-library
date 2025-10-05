@@ -15,6 +15,7 @@ from typing import Optional, Dict, Tuple
 from io import BytesIO
 from PIL import Image
 from difflib import SequenceMatcher
+from datetime import datetime
 
 # 경로 설정
 BOOKS_DIR = Path("books")
@@ -325,9 +326,14 @@ class MetadataEnricher:
             self.skipped_count += 1
             return False
 
-        # 이미 완전한 메타데이터가 있으면 스킵
-        has_cover = metadata.get('cover') is not None
+        # 이미 완전한 메타데이터가 있으면 스킵 (실제 파일 존재 확인)
         has_description = metadata.get('description') is not None
+
+        cover_filename = metadata.get('cover')
+        has_cover = False
+        if cover_filename:
+            cover_path = COVERS_DIR / cover_filename
+            has_cover = cover_path.exists()  # 실제 파일 존재 확인
 
         if has_cover and has_description:
             print(f"⏭️  {title[:50]}... - 이미 완전한 메타데이터 존재")
@@ -430,8 +436,10 @@ class MetadataEnricher:
 
     def run(self):
         """모든 EPUB 파일의 메타데이터 보완"""
-        print("=" * 60)
+        start_time = datetime.now()
+        print("\n" + "=" * 60)
         print("📚 Dream Library 메타데이터 보완 시작")
+        print(f"🕐 실행 시간: {start_time.strftime('%Y-%m-%d %H:%M:%S %Z')}")
         print("=" * 60)
 
         # covers 디렉토리 생성
@@ -455,9 +463,15 @@ class MetadataEnricher:
                 time.sleep(1)
 
         # 결과 요약
+        end_time = datetime.now()
+        duration = (end_time - start_time).total_seconds()
+
         print("\n" + "=" * 60)
         print("📊 처리 결과")
         print("=" * 60)
+        print(f"🕐 시작 시간: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"🕐 종료 시간: {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"⏱️  소요 시간: {duration:.1f}초")
         print(f"✅ 업데이트됨: {self.updated_count}개")
         print(f"⏭️  스킵됨: {self.skipped_count}개")
         print(f"❌ 실패: {self.failed_count}개")

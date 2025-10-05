@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import encouragementsData from '@/data/encouragements.json';
 
 interface Book {
   id: number;
@@ -19,7 +20,10 @@ interface Book {
 interface User {
   id: string;
   username: string;
+  email: string;
+  role: string;
   downloadedBooks: number[];
+  downloadHistory?: { bookId: number; downloadedAt: string }[];
 }
 
 interface ShootingStar {
@@ -37,6 +41,8 @@ export default function Home() {
   const [hideDownloaded, setHideDownloaded] = useState(false);
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [encouragementMsg, setEncouragementMsg] = useState('');
   const router = useRouter();
   const BOOKS_PER_PAGE = 20;
 
@@ -55,7 +61,26 @@ export default function Home() {
     fetch('/api/auth/me')
       .then(res => res.json())
       .then(data => {
-        setUser(data.user);
+        if (data.user) {
+          setUser(data.user);
+
+          // 이번 달 다운로드 수 계산
+          const now = new Date();
+          const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+          const monthlyCount = (data.user.downloadHistory || []).filter((download: { downloadedAt: string }) => {
+            const date = new Date(download.downloadedAt);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            return monthKey === thisMonth;
+          }).length;
+
+          // 격려 메시지 한 번만 설정
+          const tier = encouragementsData.tiers.find(t => monthlyCount >= t.min && monthlyCount <= t.max);
+          if (tier && tier.messages.length > 0) {
+            const randomIndex = Math.floor(Math.random() * tier.messages.length);
+            const message = tier.messages[randomIndex].replace('{count}', String(monthlyCount));
+            setEncouragementMsg(message);
+          }
+        }
       })
       .catch(err => console.error('Error loading user:', err));
 
@@ -188,6 +213,20 @@ export default function Home() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  // 이번 달 다운로드 수 계산
+  const getThisMonthDownloads = (): number => {
+    if (!user?.downloadHistory) return 0;
+
+    const now = new Date();
+    const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    return user.downloadHistory.filter(download => {
+      const date = new Date(download.downloadedAt);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return monthKey === thisMonth;
+    }).length;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50 flex items-center justify-center relative overflow-hidden">
@@ -210,7 +249,7 @@ export default function Home() {
       ))}
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-10">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm relative z-30">
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-6 flex items-center justify-between">
           <div
             onClick={() => window.location.href = '/'}
@@ -227,17 +266,56 @@ export default function Home() {
               📖 E-Reader
             </Link>
             {user ? (
-              <>
-                <span className="text-sm md:text-base text-gray-700 hidden sm:inline">
-                  <span className="text-gray-900 font-semibold">{user.username}</span>님 환영합니다
-                </span>
+              <div className="relative">
                 <button
-                  onClick={handleLogout}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors border border-gray-400"
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-900 px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base rounded-lg transition-colors border border-gray-300 shadow-sm"
                 >
-                  로그아웃
+                  <span className="font-semibold">👤 마이페이지</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
-              </>
+
+                {isUserMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-[60]"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-[70]">
+                      <div className="px-4 py-2 text-sm font-semibold text-gray-900 border-b border-gray-200">
+                        {user.username} 님
+                      </div>
+                      <Link
+                        href="/mypage"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        마이페이지
+                      </Link>
+                      {user.role === 'admin' && (
+                        <Link
+                          href="/admin"
+                          className="block px-4 py-2 text-sm text-blue-700 hover:bg-gray-100 transition-colors font-medium"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          🔧 관리자 페이지
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          handleLogout();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        로그아웃
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             ) : (
               <Link
                 href="/auth"
@@ -248,10 +326,23 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* Encouragement Banner */}
+        {user && encouragementMsg && (
+          <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border-t border-gray-200 py-2">
+            <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2">
+              <span className="text-base">🎉</span>
+              <span className="text-sm font-medium text-gray-700">
+                이번 달 <span className="font-semibold text-purple-600">{getThisMonthDownloads()}권</span> 다운로드 · {encouragementMsg}
+              </span>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">
@@ -299,7 +390,7 @@ export default function Home() {
               }`}
             >
               <span>{hideDownloaded ? '✅' : '☐'}</span>
-              <span>소장 도서 제외</span>
+              <span>다운로드한 도서 제외</span>
             </button>
           )}
         </div>
@@ -334,10 +425,11 @@ export default function Home() {
                       {/* Downloaded Overlay */}
                       {isDownloaded(book.id) && (
                         <div className="absolute top-2 right-2">
-                          <div className="bg-green-500 text-white rounded-full p-1.5 shadow-lg">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="bg-green-500 text-white rounded-full px-2.5 py-1 shadow-lg flex items-center gap-1">
+                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
+                            <span className="text-xs font-semibold">다운로드 완료</span>
                           </div>
                         </div>
                       )}
@@ -351,10 +443,12 @@ export default function Home() {
                       {book.author && (
                         <p className="text-gray-600 text-xs mb-2 line-clamp-1">{book.author}</p>
                       )}
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">EPUB</span>
-                        <span className="font-medium">{formatFileSize(book.size)}</span>
-                      </div>
+                      {user && (
+                        <div className="flex items-center justify-between text-xs text-gray-500">
+                          <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">EPUB</span>
+                          <span className="font-medium">{formatFileSize(book.size)}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>

@@ -3,15 +3,11 @@ import { createUser, generateToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
-    // Log existing cookie before signup
-    const existingToken = request.cookies.get('auth_token')?.value;
-    console.log('[SIGNUP] Existing cookie before signup:', existingToken ? `${existingToken.substring(0, 20)}...` : 'NONE');
+    const { username, password, email } = await request.json();
 
-    const { username, password, rememberMe } = await request.json();
-
-    if (!username || !password) {
+    if (!username || !password || !email) {
       return NextResponse.json(
-        { error: 'Username and password are required' },
+        { error: 'Username, password, and email are required' },
         { status: 400 }
       );
     }
@@ -30,37 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await createUser(username, password);
-    const token = generateToken(user.id, rememberMe);
+    const user = await createUser(username, password, email);
 
-    console.log('[SIGNUP] New user created:', username, 'ID:', user.id);
-    console.log('[SIGNUP] New token generated:', token.substring(0, 20) + '...');
+    console.log('[SIGNUP] New user created:', username, 'ID:', user.id, 'Email:', email);
 
-    const response = NextResponse.json({
+    // 회원가입 성공 후 승인 대기 메시지 반환 (토큰 발급 안 함)
+    return NextResponse.json({
       success: true,
-      user: {
-        id: user.id,
-        username: user.username,
-      },
+      message: '회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.',
+      pendingApproval: true,
     });
-
-    // Set cookie
-    const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60; // 30 days or 1 day
-    const protocol = request.headers.get('x-forwarded-proto') ||
-                     (request.url.startsWith('https') ? 'https' : 'http');
-    const isSecure = protocol === 'https';
-
-    response.cookies.set('auth_token', token, {
-      httpOnly: true,
-      secure: isSecure, // Match actual protocol (https = true, http = false)
-      sameSite: 'lax', // Must match login and logout
-      maxAge,
-      path: '/', // Explicitly set path for consistency
-    });
-
-    console.log('[SIGNUP] Cookie set for user:', username, 'protocol:', protocol, 'secure:', isSecure);
-
-    return response;
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Signup failed';
     return NextResponse.json({ error: message }, { status: 400 });

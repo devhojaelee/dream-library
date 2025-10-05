@@ -20,6 +20,7 @@ interface User {
   id: string;
   username: string;
   downloadedBooks: number[];
+  downloadHistory?: { bookId: number; downloadedAt: string }[];
 }
 
 export default function EinkBookDetail() {
@@ -53,6 +54,14 @@ export default function EinkBookDetail() {
   }, [params.id]);
 
   const isDownloaded = book && user?.downloadedBooks?.includes(book.id);
+
+  const getDownloadDate = (): string | null => {
+    if (!book || !user?.downloadHistory) return null;
+    const record = user.downloadHistory.find(d => d.bookId === book.id);
+    return record?.downloadedAt || null;
+  };
+
+  const downloadDate = getDownloadDate();
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -255,14 +264,30 @@ export default function EinkBookDetail() {
               {isDownloaded && (
                 <div style={{
                   marginBottom: '16px',
-                  padding: '12px',
-                  border: '2px solid #000000',
-                  background: '#000000',
-                  color: '#ffffff',
-                  fontSize: '16px',
-                  fontWeight: 600
+                  padding: '16px',
+                  border: '3px solid #000000',
+                  background: '#f5f5f5'
                 }}>
-                  ✓ 소장중인 도서입니다
+                  <div style={{
+                    fontSize: '18px',
+                    fontWeight: 700,
+                    marginBottom: '8px'
+                  }}>
+                    ✓ 다운로드한 도서입니다
+                  </div>
+                  {downloadDate && (
+                    <div style={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: '#333333'
+                    }}>
+                      다운로드 날짜: {new Date(downloadDate).toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -286,25 +311,31 @@ export default function EinkBookDetail() {
                   </div>
                 )}
 
-                <div style={{ fontSize: '18px' }}>
-                  <span style={{ fontWeight: 600 }}>파일형식: </span>
-                  <span className="eink-badge">EPUB</span>
-                </div>
+                {user && (
+                  <>
+                    <div style={{ fontSize: '18px' }}>
+                      <span style={{ fontWeight: 600 }}>파일형식: </span>
+                      <span className="eink-badge">EPUB</span>
+                    </div>
 
-                <div style={{ fontSize: '18px' }}>
-                  <span style={{ fontWeight: 600 }}>파일크기: </span>
-                  <span>{formatFileSize(book.size)}</span>
-                </div>
+                    <div style={{ fontSize: '18px' }}>
+                      <span style={{ fontWeight: 600 }}>파일크기: </span>
+                      <span>{formatFileSize(book.size)}</span>
+                    </div>
+                  </>
+                )}
 
                 <div style={{ fontSize: '18px' }}>
                   <span style={{ fontWeight: 600 }}>등록일: </span>
                   <span>{new Date(book.addedDate).toLocaleDateString('ko-KR')}</span>
                 </div>
 
-                <div style={{ fontSize: '16px', wordBreak: 'break-all' }}>
-                  <span style={{ fontWeight: 600 }}>파일명: </span>
-                  <span>{book.filename}</span>
-                </div>
+                {user && (
+                  <div style={{ fontSize: '16px', wordBreak: 'break-all' }}>
+                    <span style={{ fontWeight: 600 }}>파일명: </span>
+                    <span>{book.filename}</span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -327,29 +358,29 @@ export default function EinkBookDetail() {
               </div>
 
               {/* Action Buttons */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                <button
-                  onClick={handleDownload}
-                  className="eink-button-primary"
-                  style={{ width: '100%' }}
-                >
-                  ⬇ EPUB 다운로드
-                </button>
+              {user && (
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <button
+                    onClick={handleDownload}
+                    className="eink-button-primary"
+                    style={{ width: '100%' }}
+                  >
+                    ⬇ EPUB 다운로드
+                  </button>
 
-                {user && (
                   <button
                     onClick={toggleDownloadStatus}
                     className={isDownloaded ? 'eink-button-primary' : 'eink-button'}
                     style={{ width: '100%' }}
                   >
-                    {isDownloaded ? '✅ 소장 취소' : '☐ 소장중으로 표시'}
+                    {isDownloaded ? '✅ 다운로드 표시 해제' : '☐ 다운로드 완료 표시'}
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

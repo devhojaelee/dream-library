@@ -28,6 +28,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 승인 확인
+    if (!user.approved) {
+      return NextResponse.json(
+        { error: '회원가입 승인 대기중입니다. 관리자 승인 후 로그인할 수 있습니다.' },
+        { status: 403 }
+      );
+    }
+
     const token = generateToken(user.id, rememberMe);
 
     const response = NextResponse.json({

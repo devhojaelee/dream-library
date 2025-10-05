@@ -20,6 +20,7 @@ interface User {
   id: string;
   username: string;
   downloadedBooks: number[];
+  downloadHistory?: { bookId: number; downloadedAt: string }[];
 }
 
 export default function BookDetail() {
@@ -53,6 +54,14 @@ export default function BookDetail() {
   }, [params.id]);
 
   const isDownloaded = book && user?.downloadedBooks?.includes(book.id);
+
+  const getDownloadDate = (): string | null => {
+    if (!book || !user?.downloadHistory) return null;
+    const record = user.downloadHistory.find(d => d.bookId === book.id);
+    return record?.downloadedAt || null;
+  };
+
+  const downloadDate = getDownloadDate();
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 Bytes';
@@ -200,9 +209,20 @@ export default function BookDetail() {
 
               {/* Downloaded Status Badge */}
               {isDownloaded && (
-                <div className="mb-4 inline-flex items-center gap-2 bg-green-100 border border-green-300 text-green-800 px-4 py-2 rounded-lg">
-                  <span>✅</span>
-                  <span className="font-semibold">소장중인 도서입니다</span>
+                <div className="mb-4 bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xl">✅</span>
+                    <span className="font-bold text-green-900">다운로드한 도서입니다</span>
+                  </div>
+                  {downloadDate && (
+                    <div className="text-sm text-green-700 ml-7">
+                      다운로드 날짜: {new Date(downloadDate).toLocaleDateString('ko-KR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -221,17 +241,21 @@ export default function BookDetail() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600 font-medium">파일형식:</span>
-                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
-                    EPUB
-                  </span>
-                </div>
+                {user && (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-600 font-medium">파일형식:</span>
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+                        EPUB
+                      </span>
+                    </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600 font-medium">파일크기:</span>
-                  <span className="text-gray-900 font-medium">{formatFileSize(book.size)}</span>
-                </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-gray-600 font-medium">파일크기:</span>
+                      <span className="text-gray-900 font-medium">{formatFileSize(book.size)}</span>
+                    </div>
+                  </>
+                )}
 
                 <div className="flex items-center gap-3">
                   <span className="text-gray-600 font-medium">등록일:</span>
@@ -240,10 +264,12 @@ export default function BookDetail() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className="text-gray-600 font-medium">파일명:</span>
-                  <span className="text-gray-800 text-sm break-all">{book.filename}</span>
-                </div>
+                {user && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-600 font-medium">파일명:</span>
+                    <span className="text-gray-800 text-sm break-all">{book.filename}</span>
+                  </div>
+                )}
               </div>
 
               {/* Description */}
@@ -255,18 +281,18 @@ export default function BookDetail() {
               </div>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
-                {/* Download Button */}
-                <button
-                  onClick={handleDownload}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-md hover:shadow-lg"
-                >
-                  <span>⬇️</span>
-                  <span>EPUB 다운로드</span>
-                </button>
+              {user && (
+                <div className="space-y-3">
+                  {/* Download Button */}
+                  <button
+                    onClick={handleDownload}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3 text-lg shadow-md hover:shadow-lg"
+                  >
+                    <span>⬇️</span>
+                    <span>EPUB 다운로드</span>
+                  </button>
 
-                {/* Toggle Download Status Button */}
-                {user && (
+                  {/* Toggle Download Status Button */}
                   <button
                     onClick={toggleDownloadStatus}
                     className={`w-full font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3 border-2 ${
@@ -276,10 +302,10 @@ export default function BookDetail() {
                     }`}
                   >
                     <span>{isDownloaded ? '✅' : '☐'}</span>
-                    <span>{isDownloaded ? '소장 취소' : '소장중으로 표시'}</span>
+                    <span>{isDownloaded ? '다운로드 표시 해제' : '다운로드 완료 표시'}</span>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

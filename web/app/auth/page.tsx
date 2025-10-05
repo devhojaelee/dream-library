@@ -7,10 +7,76 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const router = useRouter();
+
+  const handleSendVerificationCode = async () => {
+    if (!email) {
+      setError('이메일을 입력해주세요');
+      return;
+    }
+
+    setSendingCode(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const res = await fetch('/api/auth/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || '인증 코드 전송 실패');
+      }
+
+      setSuccessMessage('인증 코드가 이메일로 전송되었습니다 (5분간 유효)');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '인증 코드 전송 실패');
+    } finally {
+      setSendingCode(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (!verificationCode) {
+      setError('인증 코드를 입력해주세요');
+      return;
+    }
+
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const res = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || '인증 코드가 일치하지 않습니다');
+      }
+
+      setIsEmailVerified(true);
+      setSuccessMessage('이메일 인증이 완료되었습니다');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '인증 실패');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +84,28 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
+      // 회원가입 시 검증
+      if (!isLogin) {
+        // 비밀번호 확인
+        if (password !== confirmPassword) {
+          throw new Error('비밀번호가 일치하지 않습니다');
+        }
+
+        // 이메일 인증 확인
+        if (!isEmailVerified) {
+          throw new Error('이메일 인증을 완료해주세요');
+        }
+      }
+
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+      const body = isLogin
+        ? { username, password, rememberMe }
+        : { username, password, email, rememberMe };
+
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, rememberMe }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -31,7 +114,19 @@ export default function AuthPage() {
         throw new Error(data.error || 'Authentication failed');
       }
 
-      // Force full page reload to ensure fresh user state
+      // 회원가입 성공 시 승인 대기 메시지 처리
+      if (!isLogin && data.pendingApproval) {
+        setSuccessMessage(data.message);
+        setError('');
+        // 3초 후 로그인 탭으로 전환
+        setTimeout(() => {
+          setIsLogin(true);
+          setSuccessMessage('');
+        }, 3000);
+        return;
+      }
+
+      // 로그인 성공 시 홈으로 이동
       window.location.href = '/';
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -99,6 +194,13 @@ export default function AuthPage() {
             </div>
           )}
 
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+              {successMessage}
+            </div>
+          )}
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Username */}
@@ -134,6 +236,83 @@ export default function AuthPage() {
                 minLength={6}
               />
             </div>
+
+            {/* Confirm Password (Signup only) */}
+            {!isLogin && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  비밀번호 확인
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="비밀번호를 다시 입력하세요"
+                  required
+                  minLength={6}
+                />
+              </div>
+            )}
+
+            {/* Email (Signup only) */}
+            {!isLogin && (
+              <>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                    이메일
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="이메일을 입력하세요"
+                      required
+                      disabled={isEmailVerified}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingCode || isEmailVerified}
+                      className="px-4 py-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors whitespace-nowrap disabled:cursor-not-allowed"
+                    >
+                      {isEmailVerified ? '인증완료' : sendingCode ? '전송중...' : '인증코드'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Verification Code */}
+                {!isEmailVerified && (
+                  <div>
+                    <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
+                      인증 코드
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="verificationCode"
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="인증 코드 6자리"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyCode}
+                        className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap"
+                      >
+                        확인
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Remember Me */}
             <div className="flex items-center">
@@ -189,16 +368,6 @@ export default function AuthPage() {
               </p>
             )}
           </div>
-        </div>
-
-        {/* Continue as Guest */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => router.push('/')}
-            className="text-gray-600 hover:text-gray-800 text-sm font-medium"
-          >
-            로그인하지 않고 둘러보기 →
-          </button>
         </div>
       </div>
     </div>

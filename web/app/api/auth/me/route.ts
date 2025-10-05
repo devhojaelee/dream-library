@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, getUsers, getUserDownloads } from '@/lib/auth';
+import { verifyToken, getUsers, getUserDownloads, getUserDownloadHistory } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     const token = request.cookies.get('auth_token')?.value;
 
-    console.log('[AUTH/ME] Token received:', token ? `${token.substring(0, 20)}...` : 'NONE');
-
     if (!token) {
-      console.log('[AUTH/ME] No token found, returning null user');
       return NextResponse.json({ user: null });
     }
 
@@ -31,12 +28,16 @@ export async function GET(request: NextRequest) {
     console.log('[AUTH/ME] Returning user:', user.username, 'ID:', user.id);
 
     const downloadedBooks = getUserDownloads(user.id);
+    const downloadHistory = getUserDownloadHistory(user.id);
 
     return NextResponse.json({
       user: {
         id: user.id,
         username: user.username,
+        email: user.email,
+        role: user.role,
         downloadedBooks,
+        downloadHistory,
       },
     });
   } catch (error) {
