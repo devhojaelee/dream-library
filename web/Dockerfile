@@ -22,6 +22,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Install su-exec for user switching
+RUN apk add --no-cache su-exec
+
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -40,11 +43,14 @@ RUN chown -R nextjs:nodejs /app/data
 # Set correct permissions
 RUN chown -R nextjs:nodejs /app
 
-USER nextjs
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "server.js"]
