@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const metadataPath = path.join(metadataDir, `${baseFilename}.json`);
 
     // 기존 메타데이터 읽기
-    let metadata: Record<string, any> = {};
+    let metadata: Record<string, string | boolean | number> = {};
     if (fs.existsSync(metadataPath)) {
       const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
       metadata = JSON.parse(metadataContent);
