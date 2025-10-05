@@ -30,7 +30,31 @@ export async function POST(request: NextRequest) {
 
     console.log('[SIGNUP] New user created:', username, 'ID:', user.id, 'Email:', email);
 
-    // 회원가입 성공 후 승인 대기 메시지 반환 (토큰 발급 안 함)
+    // 관리자 계정은 즉시 승인 및 토큰 발급
+    if (user.approved) {
+      const token = generateToken(user.id);
+      const response = NextResponse.json({
+        success: true,
+        message: '회원가입이 완료되었습니다.',
+        user: {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+      });
+
+      response.cookies.set('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 86400, // 1 day
+      });
+
+      return response;
+    }
+
+    // 일반 사용자는 승인 대기 메시지 반환
     return NextResponse.json({
       success: true,
       message: '회원가입이 완료되었습니다. 관리자 승인 후 로그인할 수 있습니다.',
