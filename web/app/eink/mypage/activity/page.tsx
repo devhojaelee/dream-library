@@ -140,7 +140,8 @@ export default function EinkActivityPage() {
         <div style={{
           background: '#ffffff',
           border: '2px solid #000000',
-          padding: '16px'
+          padding: '16px',
+          textAlign: 'center'
         }}>
           <div style={{
             fontSize: '16px',
@@ -159,7 +160,8 @@ export default function EinkActivityPage() {
         <div style={{
           background: '#ffffff',
           border: '2px solid #000000',
-          padding: '16px'
+          padding: '16px',
+          textAlign: 'center'
         }}>
           <div style={{
             fontSize: '16px',
@@ -178,7 +180,8 @@ export default function EinkActivityPage() {
         <div style={{
           background: '#ffffff',
           border: '2px solid #000000',
-          padding: '16px'
+          padding: '16px',
+          textAlign: 'center'
         }}>
           <div style={{
             fontSize: '16px',

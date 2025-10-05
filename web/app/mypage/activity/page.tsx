@@ -116,15 +116,15 @@ export default function ActivityPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300 text-center">
           <div className="text-sm font-semibold text-gray-600 mb-2">총 다운로드</div>
           <div className="text-3xl font-bold text-purple-600">{downloads.length}권</div>
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300 text-center">
           <div className="text-sm font-semibold text-gray-600 mb-2">이번 달</div>
           <div className="text-3xl font-bold text-blue-600">{getThisMonthCount()}권</div>
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300 text-center">
           <div className="text-sm font-semibold text-gray-600 mb-2">가장 활발했던 달</div>
           {mostActiveMonth.count > 0 ? (
             <>

@@ -58,8 +58,9 @@ export default function AdminLayout({
   }
 
   const navItems = [
-    { href: '/admin/users', label: '사용자 승인', icon: '👥' },
+    { href: '/admin/users', label: '사용자 관리', icon: '👥' },
     { href: '/admin/books', label: '책 관리', icon: '📚' },
+    { href: '/admin/ranking', label: '랭킹', icon: '🏆' },
   ];
 
   return (

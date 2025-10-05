@@ -1,0 +1,20 @@
+FROM alpine:3.18
+
+WORKDIR /app
+
+# Install bash and cron
+RUN apk add --no-cache bash tzdata && \
+    rm -rf /var/cache/apk/*
+
+# Copy backup script
+COPY backup_data.sh /app/
+
+# Make script executable
+RUN chmod +x /app/backup_data.sh
+
+# Create cron job to run at midnight every day (KST)
+RUN echo "0 0 * * * /app/backup_data.sh >> /var/log/backup-cron.log 2>&1" > /etc/crontabs/root && \
+    touch /var/log/backup-cron.log
+
+# Run cron in foreground with initial execution
+CMD ["sh", "-c", "/app/backup_data.sh >> /var/log/backup-cron.log 2>&1 && crond -f -l 2"]

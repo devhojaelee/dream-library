@@ -16,11 +16,94 @@ export default function AuthPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // 실시간 검증 상태
+  const [emailError, setEmailError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
   const router = useRouter();
+
+  // 이메일 형식 검증
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // 사용자명 검증 (영문, 숫자, 언더스코어만 허용)
+  const validateUsername = (username: string): boolean => {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+  };
+
+  // 비밀번호 검증
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 8;
+  };
+
+  // 이메일 blur 이벤트
+  const handleEmailBlur = () => {
+    if (!email) {
+      setEmailError('');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setEmailError('올바른 이메일 형식이 아닙니다');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  // 사용자명 blur 이벤트
+  const handleUsernameBlur = () => {
+    if (!username) {
+      setUsernameError('');
+      return;
+    }
+    if (!validateUsername(username)) {
+      setUsernameError('3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다');
+    } else {
+      setUsernameError('');
+    }
+  };
+
+  // 비밀번호 blur 이벤트
+  const handlePasswordBlur = () => {
+    if (!password) {
+      setPasswordError('');
+      return;
+    }
+    if (!validatePassword(password)) {
+      setPasswordError('비밀번호는 최소 8자 이상이어야 합니다');
+    } else {
+      setPasswordError('');
+    }
+  };
+
+  // 비밀번호 확인 blur 이벤트
+  const handleConfirmPasswordBlur = () => {
+    if (!confirmPassword) {
+      setConfirmPasswordError('');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('비밀번호가 일치하지 않습니다');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
 
   const handleSendVerificationCode = async () => {
     if (!email) {
       setError('이메일을 입력해주세요');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('올바른 이메일 형식을 입력해주세요');
       return;
     }
 
@@ -86,6 +169,21 @@ export default function AuthPage() {
     try {
       // 회원가입 시 검증
       if (!isLogin) {
+        // 사용자명 검증
+        if (!validateUsername(username)) {
+          throw new Error('사용자명은 3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다');
+        }
+
+        // 이메일 형식 검증
+        if (!validateEmail(email)) {
+          throw new Error('올바른 이메일 형식을 입력해주세요');
+        }
+
+        // 비밀번호 길이 검증
+        if (!validatePassword(password)) {
+          throw new Error('비밀번호는 최소 8자 이상이어야 합니다');
+        }
+
         // 비밀번호 확인
         if (password !== confirmPassword) {
           throw new Error('비밀번호가 일치하지 않습니다');
@@ -163,6 +261,10 @@ export default function AuthPage() {
               onClick={() => {
                 setIsLogin(true);
                 setError('');
+                setEmailError('');
+                setUsernameError('');
+                setPasswordError('');
+                setConfirmPasswordError('');
               }}
               className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                 isLogin
@@ -176,6 +278,10 @@ export default function AuthPage() {
               onClick={() => {
                 setIsLogin(false);
                 setError('');
+                setEmailError('');
+                setUsernameError('');
+                setPasswordError('');
+                setConfirmPasswordError('');
               }}
               className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
                 !isLogin
@@ -213,28 +319,128 @@ export default function AuthPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onBlur={!isLogin ? handleUsernameBlur : undefined}
+                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  usernameError ? 'border-red-500' : 'border-gray-300'
+                }`}
                 placeholder="아이디를 입력하세요"
                 required
-                minLength={3}
+                autoComplete="username"
               />
+              {!isLogin && usernameError && (
+                <p className="mt-1 text-sm text-red-600">{usernameError}</p>
+              )}
+              {!isLogin && !usernameError && username && (
+                <p className="mt-1 text-sm text-green-600">✓ 사용 가능한 아이디입니다</p>
+              )}
             </div>
+
+            {/* Email (Signup only) */}
+            {!isLogin && (
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  이메일
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={handleEmailBlur}
+                    className={`flex-1 px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                      emailError ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="이메일을 입력하세요"
+                    required
+                    disabled={isEmailVerified}
+                    autoComplete="email"
+                  />
+                  {!isEmailVerified && (
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingCode || !email}
+                      className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {sendingCode ? '전송중...' : '인증코드'}
+                    </button>
+                  )}
+                </div>
+                {emailError && (
+                  <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                )}
+                {!emailError && email && validateEmail(email) && !isEmailVerified && (
+                  <p className="mt-1 text-sm text-green-600">✓ 올바른 이메일 형식입니다</p>
+                )}
+              </div>
+            )}
+
+            {/* Verification Code (Signup only, after sending code) */}
+            {!isLogin && !isEmailVerified && successMessage.includes('전송') && (
+              <div>
+                <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
+                  인증 코드
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="verificationCode"
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="6자리 인증 코드 입력"
+                    required
+                    maxLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyCode}
+                    disabled={!verificationCode}
+                    className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 비밀번호
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="비밀번호를 입력하세요"
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={!isLogin ? handlePasswordBlur : undefined}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12 ${
+                    passwordError ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+              {!isLogin && passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
+              {!isLogin && !passwordError && password && validatePassword(password) && (
+                <p className="mt-1 text-sm text-green-600">✓ 안전한 비밀번호입니다</p>
+              )}
+              {!isLogin && (
+                <p className="mt-1 text-xs text-gray-500">최소 8자 이상 입력하세요</p>
+              )}
             </div>
 
             {/* Confirm Password (Signup only) */}
@@ -243,131 +449,62 @@ export default function AuthPage() {
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                   비밀번호 확인
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="비밀번호를 다시 입력하세요"
-                  required
-                  minLength={6}
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={handleConfirmPasswordBlur}
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12 ${
+                      confirmPasswordError ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="비밀번호를 다시 입력하세요"
+                    required
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {confirmPasswordError && (
+                  <p className="mt-1 text-sm text-red-600">{confirmPasswordError}</p>
+                )}
+                {!confirmPasswordError && confirmPassword && password === confirmPassword && (
+                  <p className="mt-1 text-sm text-green-600">✓ 비밀번호가 일치합니다</p>
+                )}
               </div>
             )}
 
-            {/* Email (Signup only) */}
-            {!isLogin && (
-              <>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    이메일
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="이메일을 입력하세요"
-                      required
-                      disabled={isEmailVerified}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSendVerificationCode}
-                      disabled={sendingCode || isEmailVerified}
-                      className="px-4 py-3 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors whitespace-nowrap disabled:cursor-not-allowed"
-                    >
-                      {isEmailVerified ? '인증완료' : sendingCode ? '전송중...' : '인증코드'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Verification Code */}
-                {!isEmailVerified && (
-                  <div>
-                    <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700 mb-2">
-                      인증 코드
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        id="verificationCode"
-                        type="text"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        className="flex-1 px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="인증 코드 6자리"
-                        maxLength={6}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyCode}
-                        className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors whitespace-nowrap"
-                      >
-                        확인
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
+            {/* Remember Me (Login only) */}
+            {isLogin && (
+              <div className="flex items-center">
+                <input
+                  id="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
+                  로그인 상태 유지 (30일)
+                </label>
+              </div>
             )}
-
-            {/* Remember Me */}
-            <div className="flex items-center">
-              <input
-                id="rememberMe"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 bg-white border-gray-300 rounded text-blue-600 focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
-                로그인 상태 유지 (30일)
-              </label>
-            </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:cursor-not-allowed"
+              disabled={loading || (!isLogin && !isEmailVerified)}
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? '처리중...' : isLogin ? '로그인' : '회원가입'}
+              {loading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
             </button>
           </form>
-
-          {/* Info Text */}
-          <div className="mt-6 text-center text-sm text-gray-600">
-            {isLogin ? (
-              <p>
-                계정이 없으신가요?{' '}
-                <button
-                  onClick={() => {
-                    setIsLogin(false);
-                    setError('');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  회원가입
-                </button>
-              </p>
-            ) : (
-              <p>
-                이미 계정이 있으신가요?{' '}
-                <button
-                  onClick={() => {
-                    setIsLogin(true);
-                    setError('');
-                  }}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  로그인
-                </button>
-              </p>
-            )}
-          </div>
         </div>
       </div>
     </div>

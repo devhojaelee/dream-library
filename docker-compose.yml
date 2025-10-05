@@ -61,6 +61,19 @@ services:
     networks:
       - dream-library
 
+  backup-cron:
+    build:
+      context: .
+      dockerfile: Dockerfile.backup-cron
+    container_name: dream-library-backup-cron
+    volumes:
+      - ./web/data:/app/data
+    environment:
+      - TZ=Asia/Seoul
+    restart: unless-stopped
+    networks:
+      - dream-library
+
 networks:
   dream-library:
     driver: bridge

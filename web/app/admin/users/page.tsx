@@ -1,20 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-interface PendingUser {
+interface User {
   id: string;
   username: string;
   email: string;
+  role: string;
+  approved: boolean;
   createdAt: string;
 }
 
 export default function AdminUsersPage() {
-  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<PendingUser[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved'>('all');
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,17 +32,21 @@ export default function AdminUsersPage() {
   // Bulk selection
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
 
-  const loadPendingUsers = async () => {
+  // Dropdown menu
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const loadAllUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/pending-users');
+      const res = await fetch('/api/admin/all-users');
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to load pending users');
+        throw new Error(data.error || 'Failed to load users');
       }
 
-      setPendingUsers(data.users);
+      setAllUsers(data.users);
       setFilteredUsers(data.users);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
@@ -47,12 +56,31 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    loadPendingUsers();
+    loadAllUsers();
   }, []);
 
-  // Search and sort
+  // Close dropdown when clicking outside
   useEffect(() => {
-    let result = [...pendingUsers];
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Filter and search
+  useEffect(() => {
+    let result = [...allUsers];
+
+    // Tab filter
+    if (activeTab === 'pending') {
+      result = result.filter(u => !u.approved && u.role !== 'admin');
+    } else if (activeTab === 'approved') {
+      result = result.filter(u => u.approved && u.role !== 'admin');
+    }
 
     // Search filter
     if (searchTerm) {
@@ -71,8 +99,8 @@ export default function AdminUsersPage() {
     });
 
     setFilteredUsers(result);
-    setCurrentPage(1); // Reset to first page when filter changes
-  }, [searchTerm, sortOrder, pendingUsers]);
+    setCurrentPage(1);
+  }, [searchTerm, sortOrder, allUsers, activeTab]);
 
   // Pagination
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -99,23 +127,22 @@ export default function AdminUsersPage() {
       }
 
       setSuccessMessage(`${username} 사용자가 승인되었습니다`);
-      setError('');
-      setSelectedUsers(new Set());
-      loadPendingUsers();
-
       setTimeout(() => setSuccessMessage(''), 3000);
+      loadAllUsers();
+      setSelectedUsers(new Set());
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Approval failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
-  const handleReject = async (userId: string, username: string) => {
-    if (!confirm(`${username} 사용자를 거부하시겠습니까? (계정이 삭제됩니다)`)) {
+  const handleDelete = async (userId: string, username: string) => {
+    if (!confirm(`${username} 사용자를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
       return;
     }
 
     try {
-      const res = await fetch('/api/admin/reject-user', {
+      const res = await fetch('/api/admin/delete-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId }),
@@ -124,26 +151,22 @@ export default function AdminUsersPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Rejection failed');
+        throw new Error(data.error || 'Deletion failed');
       }
 
-      setSuccessMessage(`${username} 사용자가 거부되었습니다`);
-      setError('');
-      setSelectedUsers(new Set());
-      loadPendingUsers();
-
+      setSuccessMessage(`${username} 사용자가 삭제되었습니다`);
       setTimeout(() => setSuccessMessage(''), 3000);
+      loadAllUsers();
+      setSelectedUsers(new Set());
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Rejection failed');
+      setError(err instanceof Error ? err.message : 'Deletion failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
   const handleBulkApprove = async () => {
     if (selectedUsers.size === 0) return;
-
-    if (!confirm(`선택한 ${selectedUsers.size}명의 사용자를 승인하시겠습니까?`)) {
-      return;
-    }
+    if (!confirm(`선택한 ${selectedUsers.size}명의 사용자를 승인하시겠습니까?`)) return;
 
     try {
       const promises = Array.from(selectedUsers).map((userId) =>
@@ -155,28 +178,23 @@ export default function AdminUsersPage() {
       );
 
       await Promise.all(promises);
-
       setSuccessMessage(`${selectedUsers.size}명의 사용자가 승인되었습니다`);
-      setError('');
-      setSelectedUsers(new Set());
-      loadPendingUsers();
-
       setTimeout(() => setSuccessMessage(''), 3000);
+      loadAllUsers();
+      setSelectedUsers(new Set());
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Bulk approval failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
-  const handleBulkReject = async () => {
+  const handleBulkDelete = async () => {
     if (selectedUsers.size === 0) return;
-
-    if (!confirm(`선택한 ${selectedUsers.size}명의 사용자를 거부하시겠습니까? (계정이 삭제됩니다)`)) {
-      return;
-    }
+    if (!confirm(`선택한 ${selectedUsers.size}명의 사용자를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) return;
 
     try {
       const promises = Array.from(selectedUsers).map((userId) =>
-        fetch('/api/admin/reject-user', {
+        fetch('/api/admin/delete-user', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
@@ -184,15 +202,13 @@ export default function AdminUsersPage() {
       );
 
       await Promise.all(promises);
-
-      setSuccessMessage(`${selectedUsers.size}명의 사용자가 거부되었습니다`);
-      setError('');
-      setSelectedUsers(new Set());
-      loadPendingUsers();
-
+      setSuccessMessage(`${selectedUsers.size}명의 사용자가 삭제되었습니다`);
       setTimeout(() => setSuccessMessage(''), 3000);
+      loadAllUsers();
+      setSelectedUsers(new Set());
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Bulk rejection failed');
+      setError(err instanceof Error ? err.message : 'Bulk deletion failed');
+      setTimeout(() => setError(''), 3000);
     }
   };
 
@@ -214,13 +230,50 @@ export default function AdminUsersPage() {
     }
   };
 
+  const pendingCount = allUsers.filter(u => !u.approved && u.role !== 'admin').length;
+  const approvedCount = allUsers.filter(u => u.approved && u.role !== 'admin').length;
+
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">사용자 승인 관리</h2>
+        <h2 className="text-2xl font-bold text-gray-900">사용자 관리</h2>
         <div className="text-sm text-gray-800 font-medium">
-          총 <span className="font-semibold text-gray-900">{filteredUsers.length}</span>명 대기중
+          총 <span className="font-semibold text-gray-900">{allUsers.length}</span>명
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('all')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'all'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          전체 ({allUsers.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('pending')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'pending'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          승인 대기 ({pendingCount})
+        </button>
+        <button
+          onClick={() => setActiveTab('approved')}
+          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            activeTab === 'approved'
+              ? 'border-blue-500 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          승인됨 ({approvedCount})
+        </button>
       </div>
 
       {/* Messages */}
@@ -270,22 +323,30 @@ export default function AdminUsersPage() {
 
       {/* Bulk Actions */}
       {selectedUsers.size > 0 && (
-        <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-          <div className="text-blue-700 font-medium">
-            {selectedUsers.size}명 선택됨
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+          <div className="text-gray-700 text-sm font-medium">
+            {selectedUsers.size}명 선택
           </div>
           <div className="flex gap-2">
+            {activeTab !== 'approved' && (
+              <button
+                onClick={handleBulkApprove}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                승인
+              </button>
+            )}
             <button
-              onClick={handleBulkApprove}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
+              onClick={handleBulkDelete}
+              className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center gap-1.5"
             >
-              일괄 승인
-            </button>
-            <button
-              onClick={handleBulkReject}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              일괄 거부
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              삭제
             </button>
           </div>
         </div>
@@ -298,11 +359,11 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* No pending users */}
+      {/* No users */}
       {!loading && filteredUsers.length === 0 && (
         <div className="text-center py-12">
           <div className="text-gray-700 text-lg">
-            {searchTerm ? '검색 결과가 없습니다' : '승인 대기 중인 사용자가 없습니다'}
+            {searchTerm ? '검색 결과가 없습니다' : '등록된 사용자가 없습니다'}
           </div>
         </div>
       )}
@@ -314,7 +375,7 @@ export default function AdminUsersPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
-                  <th className="px-4 py-3 text-left">
+                  <th className="px-4 py-3 text-center whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={selectedUsers.size === currentUsers.length && currentUsers.length > 0}
@@ -322,16 +383,17 @@ export default function AdminUsersPage() {
                       className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">사용자명</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">이메일</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">신청일</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">작업</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">사용자명</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">이메일</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">권한</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">가입일</th>
+                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">작업</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {currentUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={selectedUsers.has(user.id)}
@@ -339,25 +401,66 @@ export default function AdminUsersPage() {
                         className="w-4 h-4 rounded border-gray-300 cursor-pointer"
                       />
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900">{user.username}</td>
-                    <td className="px-4 py-3 text-sm text-gray-800">{user.email}</td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {new Date(user.createdAt).toLocaleString('ko-KR')}
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 text-center whitespace-nowrap">{user.username}</td>
+                    <td className="px-4 py-3 text-sm text-gray-800 text-center whitespace-nowrap">{user.email}</td>
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          user.role === 'admin'
+                            ? 'bg-red-100 text-red-800'
+                            : !user.approved
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
+                        {user.role === 'admin' ? '관리자' : !user.approved ? '대기중' : '일반'}
+                      </span>
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-4 py-3 text-sm text-gray-700 text-center whitespace-nowrap">
+                      {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                    </td>
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <div className="relative inline-block" ref={openDropdown === user.id ? dropdownRef : null}>
                         <button
-                          onClick={() => handleApprove(user.id, user.username)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                          onClick={() => setOpenDropdown(openDropdown === user.id ? null : user.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="작업"
                         >
-                          승인
+                          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                          </svg>
                         </button>
-                        <button
-                          onClick={() => handleReject(user.id, user.username)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          거부
-                        </button>
+
+                        {openDropdown === user.id && (
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+                            {!user.approved && user.role !== 'admin' && (
+                              <button
+                                onClick={() => {
+                                  handleApprove(user.id, user.username);
+                                  setOpenDropdown(null);
+                                }}
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                              >
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                사용자 승인
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                handleDelete(user.id, user.username);
+                                setOpenDropdown(null);
+                              }}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                              사용자 삭제
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>

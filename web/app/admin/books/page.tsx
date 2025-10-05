@@ -256,49 +256,51 @@ export default function AdminBooksPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
-                  <th className="w-16 px-3 py-3 text-left text-sm font-semibold text-gray-700">표지</th>
-                  <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700">제목</th>
-                  <th className="w-48 px-3 py-3 text-left text-sm font-semibold text-gray-700">저자</th>
-                  <th className="w-20 px-3 py-3 text-left text-sm font-semibold text-gray-700">연도</th>
-                  <th className="w-24 px-3 py-3 text-right text-sm font-semibold text-gray-700">작업</th>
+                  <th className="w-16 px-3 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">표지</th>
+                  <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">제목</th>
+                  <th className="w-48 px-3 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">저자</th>
+                  <th className="w-20 px-3 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">연도</th>
+                  <th className="w-24 px-3 py-3 text-center text-sm font-semibold text-gray-700 whitespace-nowrap">작업</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {currentBooks.map((book) => (
                   <tr key={book.filename} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-3">
-                      {book.cover ? (
-                        <Image
-                          src={`/api/covers/${book.cover}`}
-                          alt={book.title}
-                          width={40}
-                          height={60}
-                          className="rounded shadow-sm object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
-                          No Cover
-                        </div>
-                      )}
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
+                      <div className="flex justify-center">
+                        {book.cover ? (
+                          <Image
+                            src={`/api/covers/${book.cover}`}
+                            alt={book.title}
+                            width={40}
+                            height={60}
+                            className="rounded shadow-sm object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-14 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                            No Cover
+                          </div>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-3 max-w-xs xl:max-w-md">
                       <div
-                        className="text-sm font-medium text-gray-900 line-clamp-2"
+                        className="text-sm font-medium text-gray-900 truncate"
                         title={book.title}
                       >
                         {book.title}
                       </div>
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-3 py-3 max-w-[120px] sm:max-w-[160px] lg:max-w-[200px]">
                       <div
-                        className="text-sm text-gray-800 line-clamp-1"
+                        className="text-sm text-gray-800 truncate"
                         title={book.author || '-'}
                       >
                         {book.author || '-'}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-sm text-gray-800">{book.year || '-'}</td>
-                    <td className="px-3 py-3 text-right">
+                    <td className="px-3 py-3 text-sm text-gray-800 text-center whitespace-nowrap">{book.year || '-'}</td>
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
                       <button
                         onClick={() => openEditModal(book)}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded text-sm transition-colors"

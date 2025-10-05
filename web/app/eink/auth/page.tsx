@@ -17,11 +17,94 @@ export default function EinkAuthPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // 실시간 검증 상태
+  const [emailError, setEmailError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
   const router = useRouter();
+
+  // 이메일 형식 검증
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // 사용자명 검증 (영문, 숫자, 언더스코어만 허용)
+  const validateUsername = (username: string): boolean => {
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    return usernameRegex.test(username);
+  };
+
+  // 비밀번호 검증
+  const validatePassword = (password: string): boolean => {
+    return password.length >= 8;
+  };
+
+  // 이메일 blur 이벤트
+  const handleEmailBlur = () => {
+    if (!email) {
+      setEmailError('');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setEmailError('올바른 이메일 형식이 아닙니다');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  // 사용자명 blur 이벤트
+  const handleUsernameBlur = () => {
+    if (!username) {
+      setUsernameError('');
+      return;
+    }
+    if (!validateUsername(username)) {
+      setUsernameError('3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다');
+    } else {
+      setUsernameError('');
+    }
+  };
+
+  // 비밀번호 blur 이벤트
+  const handlePasswordBlur = () => {
+    if (!password) {
+      setPasswordError('');
+      return;
+    }
+    if (!validatePassword(password)) {
+      setPasswordError('비밀번호는 최소 8자 이상이어야 합니다');
+    } else {
+      setPasswordError('');
+    }
+  };
+
+  // 비밀번호 확인 blur 이벤트
+  const handleConfirmPasswordBlur = () => {
+    if (!confirmPassword) {
+      setConfirmPasswordError('');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setConfirmPasswordError('비밀번호가 일치하지 않습니다');
+    } else {
+      setConfirmPasswordError('');
+    }
+  };
 
   const handleSendVerificationCode = async () => {
     if (!email) {
       setError('이메일을 입력해주세요');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError('올바른 이메일 형식을 입력해주세요');
       return;
     }
 
@@ -87,6 +170,21 @@ export default function EinkAuthPage() {
     try {
       // 회원가입 시 검증
       if (!isLogin) {
+        // 사용자명 검증
+        if (!validateUsername(username)) {
+          throw new Error('사용자명은 3-20자의 영문, 숫자, 언더스코어만 사용 가능합니다');
+        }
+
+        // 이메일 형식 검증
+        if (!validateEmail(email)) {
+          throw new Error('올바른 이메일 형식을 입력해주세요');
+        }
+
+        // 비밀번호 길이 검증
+        if (!validatePassword(password)) {
+          throw new Error('비밀번호는 최소 8자 이상이어야 합니다');
+        }
+
         // 비밀번호 확인
         if (password !== confirmPassword) {
           throw new Error('비밀번호가 일치하지 않습니다');
@@ -127,8 +225,8 @@ export default function EinkAuthPage() {
         return;
       }
 
-      // 로그인 성공 시 E-ink 홈으로 이동
-      window.location.href = '/eink';
+      // 로그인 성공 시 홈으로 이동
+      router.push('/eink');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -137,47 +235,32 @@ export default function EinkAuthPage() {
   };
 
   return (
-    <div className="eink-mode" style={{
-      minHeight: '100vh',
-      background: '#ffffff',
-      color: '#000000',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px'
-    }}>
-      <div style={{ maxWidth: '500px', width: '100%' }}>
+    <div className="eink-mode min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: 700,
-            marginBottom: '8px'
-          }}>
-            Dream Library
-          </h1>
-          <p style={{ fontSize: '18px' }}>(E-Reader Mode)</p>
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold mb-4">Dream Library</h1>
+          <Link href="/eink" className="eink-button-secondary inline-block">
+            ← 홈으로
+          </Link>
         </div>
 
         {/* Form Card */}
-        <div style={{
-          background: '#ffffff',
-          border: '2px solid #000000',
-          padding: '24px'
-        }}>
+        <div className="bg-white border-4 border-black p-8">
           {/* Toggle Tabs */}
-          <div style={{
-            display: 'flex',
-            gap: '8px',
-            marginBottom: '24px'
-          }}>
+          <div className="flex mb-8 border-2 border-black">
             <button
               onClick={() => {
                 setIsLogin(true);
                 setError('');
+                setEmailError('');
+                setUsernameError('');
+                setPasswordError('');
+                setConfirmPasswordError('');
               }}
-              className={isLogin ? 'eink-button-primary' : 'eink-button'}
-              style={{ flex: 1 }}
+              className={`flex-1 py-3 px-4 text-xl font-bold border-r-2 border-black ${
+                isLogin ? 'bg-black text-white' : 'bg-white text-black'
+              }`}
             >
               로그인
             </button>
@@ -185,9 +268,14 @@ export default function EinkAuthPage() {
               onClick={() => {
                 setIsLogin(false);
                 setError('');
+                setEmailError('');
+                setUsernameError('');
+                setPasswordError('');
+                setConfirmPasswordError('');
               }}
-              className={!isLogin ? 'eink-button-primary' : 'eink-button'}
-              style={{ flex: 1 }}
+              className={`flex-1 py-3 px-4 text-xl font-bold ${
+                !isLogin ? 'bg-black text-white' : 'bg-white text-black'
+              }`}
             >
               회원가입
             </button>
@@ -195,45 +283,23 @@ export default function EinkAuthPage() {
 
           {/* Error Message */}
           {error && (
-            <div style={{
-              marginBottom: '16px',
-              padding: '12px',
-              border: '2px solid #000000',
-              background: '#f0f0f0',
-              fontSize: '16px'
-            }}>
-              ⚠ {error}
+            <div className="mb-6 p-4 border-3 border-black bg-gray-100">
+              <p className="text-lg font-semibold">❌ {error}</p>
             </div>
           )}
 
           {/* Success Message */}
           {successMessage && (
-            <div style={{
-              marginBottom: '16px',
-              padding: '12px',
-              border: '2px solid #000000',
-              background: '#000000',
-              color: '#ffffff',
-              fontSize: '16px',
-              fontWeight: 600
-            }}>
-              ✓ {successMessage}
+            <div className="mb-6 p-4 border-3 border-black bg-gray-100">
+              <p className="text-lg font-semibold">✓ {successMessage}</p>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username */}
-            <div style={{ marginBottom: '16px' }}>
-              <label
-                htmlFor="username"
-                style={{
-                  display: 'block',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  marginBottom: '8px'
-                }}
-              >
+            <div>
+              <label htmlFor="username" className="block text-xl font-bold mb-3">
                 아이디
               </label>
               <input
@@ -241,280 +307,188 @@ export default function EinkAuthPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '18px',
-                  border: '2px solid #000000',
-                  background: '#ffffff',
-                  color: '#000000',
-                  boxSizing: 'border-box'
-                }}
+                onBlur={!isLogin ? handleUsernameBlur : undefined}
+                className={`eink-input ${usernameError ? 'border-black border-4' : ''}`}
                 placeholder="아이디를 입력하세요"
                 required
-                minLength={3}
+                autoComplete="username"
               />
+              {!isLogin && usernameError && (
+                <p className="mt-2 text-base font-semibold">❌ {usernameError}</p>
+              )}
+              {!isLogin && !usernameError && username && validateUsername(username) && (
+                <p className="mt-2 text-base font-semibold">✓ 사용 가능한 아이디입니다</p>
+              )}
             </div>
 
+            {/* Email (Signup only) */}
+            {!isLogin && (
+              <div>
+                <label htmlFor="email" className="block text-xl font-bold mb-3">
+                  이메일
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={handleEmailBlur}
+                    className={`flex-1 eink-input ${emailError ? 'border-black border-4' : ''}`}
+                    placeholder="이메일을 입력하세요"
+                    required
+                    disabled={isEmailVerified}
+                    autoComplete="email"
+                  />
+                  {!isEmailVerified && (
+                    <button
+                      type="button"
+                      onClick={handleSendVerificationCode}
+                      disabled={sendingCode || !email}
+                      className="eink-button-primary whitespace-nowrap"
+                    >
+                      {sendingCode ? '전송중...' : '인증코드'}
+                    </button>
+                  )}
+                </div>
+                {emailError && (
+                  <p className="mt-2 text-base font-semibold">❌ {emailError}</p>
+                )}
+                {!emailError && email && validateEmail(email) && !isEmailVerified && (
+                  <p className="mt-2 text-base font-semibold">✓ 올바른 이메일 형식입니다</p>
+                )}
+              </div>
+            )}
+
+            {/* Verification Code (Signup only, after sending code) */}
+            {!isLogin && !isEmailVerified && successMessage.includes('전송') && (
+              <div>
+                <label htmlFor="verificationCode" className="block text-xl font-bold mb-3">
+                  인증 코드
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    id="verificationCode"
+                    type="text"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    className="flex-1 eink-input"
+                    placeholder="6자리 인증 코드 입력"
+                    required
+                    maxLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleVerifyCode}
+                    disabled={!verificationCode}
+                    className="eink-button-primary whitespace-nowrap"
+                  >
+                    확인
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Password */}
-            <div style={{ marginBottom: '16px' }}>
-              <label
-                htmlFor="password"
-                style={{
-                  display: 'block',
-                  fontSize: '18px',
-                  fontWeight: 600,
-                  marginBottom: '8px'
-                }}
-              >
+            <div>
+              <label htmlFor="password" className="block text-xl font-bold mb-3">
                 비밀번호
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '18px',
-                  border: '2px solid #000000',
-                  background: '#ffffff',
-                  color: '#000000',
-                  boxSizing: 'border-box'
-                }}
-                placeholder="비밀번호를 입력하세요"
-                required
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={!isLogin ? handlePasswordBlur : undefined}
+                  className={`eink-input pr-16 ${passwordError ? 'border-black border-4' : ''}`}
+                  placeholder="비밀번호를 입력하세요"
+                  required
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl"
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
+              {!isLogin && passwordError && (
+                <p className="mt-2 text-base font-semibold">❌ {passwordError}</p>
+              )}
+              {!isLogin && !passwordError && password && validatePassword(password) && (
+                <p className="mt-2 text-base font-semibold">✓ 안전한 비밀번호입니다</p>
+              )}
+              {!isLogin && (
+                <p className="mt-2 text-sm">최소 8자 이상 입력하세요</p>
+              )}
             </div>
 
             {/* Confirm Password (Signup only) */}
             {!isLogin && (
-              <div style={{ marginBottom: '16px' }}>
-                <label
-                  htmlFor="confirmPassword"
-                  style={{
-                    display: 'block',
-                    fontSize: '18px',
-                    fontWeight: 600,
-                    marginBottom: '8px'
-                  }}
-                >
+              <div>
+                <label htmlFor="confirmPassword" className="block text-xl font-bold mb-3">
                   비밀번호 확인
                 </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    fontSize: '18px',
-                    border: '2px solid #000000',
-                    background: '#ffffff',
-                    color: '#000000',
-                    boxSizing: 'border-box'
-                  }}
-                  placeholder="비밀번호를 다시 입력하세요"
-                  required
-                  minLength={6}
-                />
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onBlur={handleConfirmPasswordBlur}
+                    className={`eink-input pr-16 ${confirmPasswordError ? 'border-black border-4' : ''}`}
+                    placeholder="비밀번호를 다시 입력하세요"
+                    required
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-2xl"
+                  >
+                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {confirmPasswordError && (
+                  <p className="mt-2 text-base font-semibold">❌ {confirmPasswordError}</p>
+                )}
+                {!confirmPasswordError && confirmPassword && password === confirmPassword && (
+                  <p className="mt-2 text-base font-semibold">✓ 비밀번호가 일치합니다</p>
+                )}
               </div>
             )}
 
-            {/* Email (Signup only) */}
-            {!isLogin && (
-              <>
-                <div style={{ marginBottom: '16px' }}>
-                  <label
-                    htmlFor="email"
-                    style={{
-                      display: 'block',
-                      fontSize: '18px',
-                      fontWeight: 600,
-                      marginBottom: '8px'
-                    }}
-                  >
-                    이메일
-                  </label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      style={{
-                        flex: 1,
-                        padding: '12px',
-                        fontSize: '18px',
-                        border: '2px solid #000000',
-                        background: isEmailVerified ? '#f0f0f0' : '#ffffff',
-                        color: '#000000',
-                        boxSizing: 'border-box'
-                      }}
-                      placeholder="이메일을 입력하세요"
-                      required
-                      disabled={isEmailVerified}
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSendVerificationCode}
-                      disabled={sendingCode || isEmailVerified}
-                      className={isEmailVerified ? 'eink-button' : 'eink-button-primary'}
-                      style={{
-                        padding: '12px 16px',
-                        fontSize: '16px',
-                        whiteSpace: 'nowrap',
-                        opacity: (sendingCode || isEmailVerified) ? 0.6 : 1
-                      }}
-                    >
-                      {isEmailVerified ? '인증완료' : sendingCode ? '전송중' : '인증코드'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Verification Code */}
-                {!isEmailVerified && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <label
-                      htmlFor="verificationCode"
-                      style={{
-                        display: 'block',
-                        fontSize: '18px',
-                        fontWeight: 600,
-                        marginBottom: '8px'
-                      }}
-                    >
-                      인증 코드
-                    </label>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <input
-                        id="verificationCode"
-                        type="text"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        style={{
-                          flex: 1,
-                          padding: '12px',
-                          fontSize: '18px',
-                          border: '2px solid #000000',
-                          background: '#ffffff',
-                          color: '#000000',
-                          boxSizing: 'border-box'
-                        }}
-                        placeholder="인증 코드 6자리"
-                        maxLength={6}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyCode}
-                        className="eink-button-primary"
-                        style={{
-                          padding: '12px 16px',
-                          fontSize: '16px',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        확인
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
+            {/* Remember Me (Login only) */}
+            {isLogin && (
+              <div className="flex items-center gap-3">
+                <input
+                  id="rememberMe"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-6 h-6 border-2 border-black"
+                />
+                <label htmlFor="rememberMe" className="text-lg font-semibold">
+                  로그인 상태 유지 (30일)
+                </label>
+              </div>
             )}
-
-            {/* Remember Me */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '24px'
-            }}>
-              <input
-                id="rememberMe"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  marginRight: '8px'
-                }}
-              />
-              <label
-                htmlFor="rememberMe"
-                style={{
-                  fontSize: '16px',
-                  cursor: 'pointer'
-                }}
-              >
-                로그인 상태 유지 (30일)
-              </label>
-            </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
-              className="eink-button-primary"
+              disabled={loading || (!isLogin && !isEmailVerified)}
+              className="eink-button-primary w-full"
               style={{
-                width: '100%',
-                opacity: loading ? 0.6 : 1
+                opacity: loading || (!isLogin && !isEmailVerified) ? 0.5 : 1,
+                cursor: loading || (!isLogin && !isEmailVerified) ? 'not-allowed' : 'pointer',
               }}
             >
-              {loading ? '처리중...' : isLogin ? '로그인' : '회원가입'}
+              {loading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
             </button>
           </form>
-
-          {/* Info Text */}
-          <div style={{
-            marginTop: '20px',
-            textAlign: 'center',
-            fontSize: '16px'
-          }}>
-            {isLogin ? (
-              <p>
-                계정이 없으신가요?{' '}
-                <button
-                  onClick={() => {
-                    setIsLogin(false);
-                    setError('');
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 600
-                  }}
-                >
-                  회원가입
-                </button>
-              </p>
-            ) : (
-              <p>
-                이미 계정이 있으신가요?{' '}
-                <button
-                  onClick={() => {
-                    setIsLogin(true);
-                    setError('');
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    fontSize: '16px',
-                    fontWeight: 600
-                  }}
-                >
-                  로그인
-                </button>
-              </p>
-            )}
-          </div>
         </div>
       </div>
     </div>
