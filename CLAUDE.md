@@ -47,7 +47,7 @@ npm run lint
 
 ### Docker Development
 ```bash
-# Start web server + auto metadata enrichment (runs daily at 00:00 KST)
+# Start web server + auto metadata enrichment watcher
 docker-compose up -d
 
 # Run crawler (Z-Library downloads)
@@ -58,10 +58,10 @@ docker-compose --profile enricher up enricher
 
 # View logs
 docker-compose logs -f web
-docker-compose logs -f enricher-cron
+docker-compose logs -f enricher-watcher
 
 # Rebuild specific service
-docker-compose build enricher
+docker-compose build enricher-watcher
 
 # Stop all services
 docker-compose down
@@ -103,13 +103,16 @@ web/data/           # Persistent user data
    - Read-only mount: `/books`
    - Read-write mount: `/web/data`
 
-2. **enricher-cron**: Auto metadata enrichment
-   - Runs immediately on container start
-   - Then executes daily at 00:00 KST via cron
+2. **enricher-watcher**: Auto metadata enrichment trigger
+   - Watches for `download_status.json` creation (crawler time limit)
+   - Waits 10 seconds after detection
+   - Automatically runs `enrich_metadata.py`
 
 3. **crawler**: Z-Library downloads (profile-based)
 
 4. **enricher**: Manual metadata enrichment (profile-based)
+
+5. **backup-cron**: User data backup (daily at 00:00 KST)
 
 ### API Routes
 - `/api/books`: List all books with metadata
@@ -121,10 +124,16 @@ web/data/           # Persistent user data
 
 ### Metadata Enrichment Pipeline
 1. Check existing metadata completeness
-2. Query Google Books API (max 5 results, Korean priority)
-3. Select best result by completeness score
+2. Query Naver Books API with cleaned title
+3. Select best result by title similarity (min 0.6 threshold)
 4. Validate and resize cover images (min 200px width)
 5. Save JSON metadata + cover files
+
+### Automated Enrichment Trigger
+1. Crawler detects download limit → creates `download_status.json`
+2. enricher-watcher detects file → waits 10 seconds
+3. Automatically runs `enrich_metadata.py` → fills missing metadata
+4. Status file cleaned up after wait period
 
 ## Key Technical Details
 
@@ -148,6 +157,7 @@ requests           # HTTP client
 beautifulsoup4     # HTML parsing (metadata enrichment)
 pillow             # Image processing
 python-dotenv      # Environment variables
+watchdog           # File system monitoring (enricher-watcher)
 ```
 
 ### Authentication Flow
@@ -179,11 +189,6 @@ python-dotenv      # Environment variables
 **Included**: Korean language books (contains Hangul characters)
 **Excluded**: Finance/stocks, philosophy, art (keyword-based)
 
-### Enricher-Cron Behavior
-- **Container start**: Immediately runs `enrich_metadata.py`
-- **Daily execution**: Cron runs at 00:00 KST
-- **Logging**: Output to `/var/log/cron.log`
-
 ## Development Notes
 
 ### Testing Scripts
@@ -200,7 +205,9 @@ Located in `/dev/test_scripts/`:
 - `NODE_ENV`: production/development
 - `BOOKS_DIR`: Book directory path (default: `/books`)
 - `JWT_SECRET`: JWT signing key (default: insecure, should be changed)
-- `TZ`: Timezone for cron (default: `Asia/Seoul`)
+- `TZ`: Timezone for backup-cron (default: `Asia/Seoul`)
+- `NAVER_CLIENT_ID`: Naver Books API client ID
+- `NAVER_CLIENT_SECRET`: Naver Books API secret
 
 ## Synology NAS Deployment
 1. Upload project to `/volume1/docker/dream-library/`
