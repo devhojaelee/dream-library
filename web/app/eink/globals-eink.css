@@ -288,11 +288,22 @@
 
   .eink-button,
   .eink-button-primary {
-    font-size: 14px;
-    padding: 8px 16px;
+    font-size: 13px;
+    padding: 8px 12px;
+    min-height: 40px;
   }
 
   .eink-card-content {
     padding: 10px;
+  }
+
+  /* Small screen: prevent button wrapping */
+  .eink-header-buttons {
+    flex-wrap: nowrap !important;
+  }
+
+  .eink-header-buttons > * {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }

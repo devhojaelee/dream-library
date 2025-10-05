@@ -306,7 +306,7 @@ export default function EinkHome() {
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <div className="eink-header-buttons" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <Link
                   href="/"
                   className="eink-button"
@@ -320,7 +320,7 @@ export default function EinkHome() {
                     <button
                       onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                       className="eink-button"
-                      style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <span>👤 마이페이지</span>
                       <span>▼</span>
