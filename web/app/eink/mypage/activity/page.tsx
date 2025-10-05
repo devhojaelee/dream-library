@@ -545,353 +545,6 @@ export default function EinkActivityPage() {
 
           {/* Chart with Toggle */}
           <div className="eink-card" style={{
-            padding: '16px',
-            marginBottom: '20px'
-          }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '16px'
-            }}>
-              <h3 style={{
-                fontSize: '16px',
-                fontWeight: 700,
-                letterSpacing: '-0.2px'
-              }}>
-                다운로드 추세
-              </h3>
-              <div style={{
-                display: 'flex',
-                gap: '4px',
-                border: '2px solid #000000',
-                padding: '2px',
-                borderRadius: '4px'
-              }}>
-                <button
-                  onClick={() => setChartType('monthly')}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    background: chartType === 'monthly' ? '#000000' : 'transparent',
-                    color: chartType === 'monthly' ? '#ffffff' : '#000000',
-                    border: 'none',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    letterSpacing: '0.2px'
-                  }}
-                >
-                  월별
-                </button>
-                <button
-                  onClick={() => setChartType('yearly')}
-                  style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    background: chartType === 'yearly' ? '#000000' : 'transparent',
-                    color: chartType === 'yearly' ? '#ffffff' : '#000000',
-                    border: 'none',
-                    borderRadius: '2px',
-                    cursor: 'pointer',
-                    letterSpacing: '0.2px'
-                  }}
-                >
-                  연도별
-                </button>
-              </div>
-            </div>
-
-            {chartType === 'monthly' ? (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}>
-                {monthlyData.map((data) => (
-                  <div key={data.month} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <div style={{
-                      width: '70px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      letterSpacing: '0.1px',
-                      flexShrink: 0
-                    }}>
-                      {data.displayMonth}
-                    </div>
-                    <div style={{
-                      flex: 1,
-                      background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '28px',
-                      position: 'relative',
-                      borderRadius: '4px',
-                      overflow: 'hidden'
-                    }}>
-                      <div
-                        style={{
-                          background: '#000000',
-                          height: '100%',
-                          width: `${(data.count / maxMonthly) * 100}%`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          padding: '0 8px'
-                        }}
-                      >
-                        {data.count > 0 && (
-                          <span style={{
-                            color: '#ffffff',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            letterSpacing: '0.2px'
-                          }}>
-                            {data.count}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-              }}>
-                {yearlyData.map((data) => (
-                  <div key={data.year} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <div style={{
-                      width: '70px',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      letterSpacing: '0.1px',
-                      flexShrink: 0
-                    }}>
-                      {data.year}
-                    </div>
-                    <div style={{
-                      flex: 1,
-                      background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '32px',
-                      position: 'relative',
-                      borderRadius: '4px',
-                      overflow: 'hidden'
-                    }}>
-                      <div
-                        style={{
-                          background: '#000000',
-                          height: '100%',
-                          width: `${(data.count / maxYearly) * 100}%`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'flex-end',
-                          padding: '0 10px'
-                        }}
-                      >
-                        <span style={{
-                          color: '#ffffff',
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          letterSpacing: '0.2px'
-                        }}>
-                          {data.count}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Top Authors */}
-          {authorStats.length > 0 && (
-            <div className="eink-card" style={{
-              padding: '16px',
-              marginBottom: '20px'
-            }}>
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '16px'
-              }}>
-                <h3 style={{
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  letterSpacing: '-0.2px'
-                }}>
-                  저자 TOP 5
-                </h3>
-                <div style={{
-                  fontSize: '11px',
-                  color: '#666666',
-                  letterSpacing: '0.2px'
-                }}>
-                  전체 다운로드 기준
-                </div>
-              </div>
-
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '12px'
-              }}>
-                {authorStats.map((data, index) => (
-                  <div key={data.author}>
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      marginBottom: '6px'
-                    }}>
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        border: '2px solid #000000',
-                        borderRadius: '50%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '11px',
-                        fontWeight: 700,
-                        flexShrink: 0
-                      }}>
-                        {index + 1}
-                      </div>
-                      <div style={{
-                        flex: 1,
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        letterSpacing: '0.1px'
-                      }}>
-                        {data.author}
-                      </div>
-                      <div style={{
-                        fontSize: '13px',
-                        fontWeight: 700,
-                        letterSpacing: '0.2px',
-                        flexShrink: 0
-                      }}>
-                        {data.count}권
-                      </div>
-                      <div style={{
-                        fontSize: '11px',
-                        color: '#666666',
-                        letterSpacing: '0.2px',
-                        flexShrink: 0,
-                        width: '40px',
-                        textAlign: 'right'
-                      }}>
-                        {((data.count / downloads.length) * 100).toFixed(1)}%
-                      </div>
-                    </div>
-                    <div style={{
-                      background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '10px',
-                      borderRadius: '5px',
-                      overflow: 'hidden'
-                    }}>
-                      <div
-                        style={{
-                          background: '#000000',
-                          height: '100%',
-                          width: `${(data.count / maxAuthorCount) * 100}%`
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary Stats */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '10px',
-                marginTop: '16px',
-                paddingTop: '16px',
-                borderTop: '2px solid #cccccc'
-              }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontSize: '10px',
-                    color: '#666666',
-                    marginBottom: '4px',
-                    fontWeight: 600,
-                    letterSpacing: '0.2px'
-                  }}>
-                    1위 저자
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.1px'
-                  }} title={authorStats[0]?.author}>
-                    {authorStats[0]?.author}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontSize: '10px',
-                    color: '#666666',
-                    marginBottom: '4px',
-                    fontWeight: 600,
-                    letterSpacing: '0.2px'
-                  }}>
-                    1위 다운로드
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    letterSpacing: '0.1px'
-                  }}>
-                    {authorStats[0]?.count}권
-                  </div>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    fontSize: '10px',
-                    color: '#666666',
-                    marginBottom: '4px',
-                    fontWeight: 600,
-                    letterSpacing: '0.2px'
-                  }}>
-                    1위 비중
-                  </div>
-                  <div style={{
-                    fontSize: '12px',
-                    fontWeight: 700,
-                    letterSpacing: '0.1px'
-                  }}>
-                    {((authorStats[0]?.count / downloads.length) * 100).toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Milestones */}
-          <div className="eink-card" style={{
             padding: '16px'
           }}>
             <h3 style={{
@@ -1224,6 +877,355 @@ export default function EinkActivityPage() {
               </div>
             )}
           </div>
+
+          {authorStats.length > 0 && (
+            <div className="eink-card" style={{
+              padding: '16px',
+              marginBottom: '20px'
+            }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px'
+              }}>
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  letterSpacing: '-0.2px'
+                }}>
+                  저자 TOP 5
+                </h3>
+                <div style={{
+                  fontSize: '11px',
+                  color: '#666666',
+                  letterSpacing: '0.2px'
+                }}>
+                  전체 다운로드 기준
+                </div>
+              </div>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                {authorStats.map((data, index) => (
+                  <div key={data.author}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      marginBottom: '6px'
+                    }}>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        border: '2px solid #000000',
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        flexShrink: 0
+                      }}>
+                        {index + 1}
+                      </div>
+                      <div style={{
+                        flex: 1,
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        letterSpacing: '0.1px'
+                      }}>
+                        {data.author}
+                      </div>
+                      <div style={{
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        letterSpacing: '0.2px',
+                        flexShrink: 0
+                      }}>
+                        {data.count}권
+                      </div>
+                      <div style={{
+                        fontSize: '11px',
+                        color: '#666666',
+                        letterSpacing: '0.2px',
+                        flexShrink: 0,
+                        width: '40px',
+                        textAlign: 'right'
+                      }}>
+                        {((data.count / downloads.length) * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div style={{
+                      background: '#e0e0e0',
+                      border: '1px solid #999999',
+                      height: '10px',
+                      borderRadius: '5px',
+                      overflow: 'hidden'
+                    }}>
+                      <div
+                        style={{
+                          background: '#000000',
+                          height: '100%',
+                          width: `${(data.count / maxAuthorCount) * 100}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary Stats */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '10px',
+                marginTop: '16px',
+                paddingTop: '16px',
+                borderTop: '2px solid #cccccc'
+              }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#666666',
+                    marginBottom: '4px',
+                    fontWeight: 600,
+                    letterSpacing: '0.2px'
+                  }}>
+                    1위 저자
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    letterSpacing: '0.1px'
+                  }} title={authorStats[0]?.author}>
+                    {authorStats[0]?.author}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#666666',
+                    marginBottom: '4px',
+                    fontWeight: 600,
+                    letterSpacing: '0.2px'
+                  }}>
+                    1위 다운로드
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    letterSpacing: '0.1px'
+                  }}>
+                    {authorStats[0]?.count}권
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{
+                    fontSize: '10px',
+                    color: '#666666',
+                    marginBottom: '4px',
+                    fontWeight: 600,
+                    letterSpacing: '0.2px'
+                  }}>
+                    1위 비중
+                  </div>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    letterSpacing: '0.1px'
+                  }}>
+                    {((authorStats[0]?.count / downloads.length) * 100).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Milestones */}
+
+          <div className="eink-card" style={{
+            padding: '16px',
+            marginBottom: '20px'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px'
+            }}>
+              <h3 style={{
+                fontSize: '16px',
+                fontWeight: 700,
+                letterSpacing: '-0.2px'
+              }}>
+                다운로드 추세
+              </h3>
+              <div style={{
+                display: 'flex',
+                gap: '4px',
+                border: '2px solid #000000',
+                padding: '2px',
+                borderRadius: '4px'
+              }}>
+                <button
+                  onClick={() => setChartType('monthly')}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: chartType === 'monthly' ? '#000000' : 'transparent',
+                    color: chartType === 'monthly' ? '#ffffff' : '#000000',
+                    border: 'none',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.2px'
+                  }}
+                >
+                  월별
+                </button>
+                <button
+                  onClick={() => setChartType('yearly')}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    background: chartType === 'yearly' ? '#000000' : 'transparent',
+                    color: chartType === 'yearly' ? '#ffffff' : '#000000',
+                    border: 'none',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.2px'
+                  }}
+                >
+                  연도별
+                </button>
+              </div>
+            </div>
+
+            {chartType === 'monthly' ? (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                {monthlyData.map((data) => (
+                  <div key={data.month} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <div style={{
+                      width: '70px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      letterSpacing: '0.1px',
+                      flexShrink: 0
+                    }}>
+                      {data.displayMonth}
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      background: '#e0e0e0',
+                      border: '1px solid #999999',
+                      height: '28px',
+                      position: 'relative',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div
+                        style={{
+                          background: '#000000',
+                          height: '100%',
+                          width: `${(data.count / maxMonthly) * 100}%`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          padding: '0 8px'
+                        }}
+                      >
+                        {data.count > 0 && (
+                          <span style={{
+                            color: '#ffffff',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            letterSpacing: '0.2px'
+                          }}>
+                            {data.count}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px'
+              }}>
+                {yearlyData.map((data) => (
+                  <div key={data.year} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <div style={{
+                      width: '70px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      letterSpacing: '0.1px',
+                      flexShrink: 0
+                    }}>
+                      {data.year}
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      background: '#e0e0e0',
+                      border: '1px solid #999999',
+                      height: '32px',
+                      position: 'relative',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div
+                        style={{
+                          background: '#000000',
+                          height: '100%',
+                          width: `${(data.count / maxYearly) * 100}%`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          padding: '0 10px'
+                        }}
+                      >
+                        <span style={{
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          letterSpacing: '0.2px'
+                        }}>
+                          {data.count}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Top Authors */}
         </>
       )}
     </div>

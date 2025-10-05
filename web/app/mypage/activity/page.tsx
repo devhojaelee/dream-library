@@ -446,170 +446,6 @@ export default function ActivityPage() {
             </div>
           </div>
 
-          {/* Time-based Chart with Toggle */}
-          <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-sm md:text-base font-semibold text-gray-900">다운로드 추세</h3>
-              <div className="flex gap-1 md:gap-2 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setChartType('monthly')}
-                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
-                    chartType === 'monthly'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  월별
-                </button>
-                <button
-                  onClick={() => setChartType('yearly')}
-                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
-                    chartType === 'yearly'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  연도별
-                </button>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={240}>
-              {chartType === 'monthly' ? (
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis
-                    dataKey="displayMonth"
-                    stroke="#6B7280"
-                    style={{ fontSize: '11px' }}
-                  />
-                  <YAxis
-                    stroke="#6B7280"
-                    style={{ fontSize: '11px' }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    labelStyle={{ fontWeight: 600, color: '#111827' }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="count"
-                    stroke={COLORS.primary}
-                    strokeWidth={2}
-                    dot={{ fill: COLORS.primary, r: 4 }}
-                    activeDot={{ r: 6 }}
-                    name="다운로드 수"
-                  />
-                </LineChart>
-              ) : (
-                <BarChart data={yearlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis
-                    dataKey="year"
-                    stroke="#6B7280"
-                    style={{ fontSize: '11px' }}
-                  />
-                  <YAxis
-                    stroke="#6B7280"
-                    style={{ fontSize: '11px' }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#FFFFFF',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    labelStyle={{ fontWeight: 600, color: '#111827' }}
-                  />
-                  <Bar
-                    dataKey="count"
-                    fill={COLORS.primary}
-                    radius={[6, 6, 0, 0]}
-                    name="다운로드 수"
-                  />
-                </BarChart>
-              )}
-            </ResponsiveContainer>
-          </div>
-
-          {/* Top Authors */}
-          {authorStats.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">저자 TOP 5</h3>
-                <div className="text-[10px] md:text-xs text-gray-500">전체 기준</div>
-              </div>
-
-              <div className="space-y-3 md:space-y-4">
-                {authorStats.map((data, index) => {
-                  const maxAuthorCount = Math.max(...authorStats.map(a => a.count));
-                  return (
-                    <div key={data.author} className="group">
-                      <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2">
-                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-md flex-shrink-0 ${
-                          index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
-                          index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
-                          index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800' :
-                          'bg-gradient-to-br from-indigo-500 to-purple-600'
-                        }`}>
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 font-semibold text-gray-900 text-xs md:text-sm truncate group-hover:text-indigo-600 transition-colors min-w-0">
-                          {data.author}
-                        </div>
-                        <div className="text-xs md:text-sm font-bold text-gray-900 flex-shrink-0">
-                          {data.count}권
-                        </div>
-                        <div className="text-[10px] md:text-xs font-medium text-gray-500 w-10 md:w-12 text-right flex-shrink-0">
-                          {((data.count / downloads.length) * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                      <div className="bg-gray-200 rounded-full h-2 md:h-2.5 overflow-hidden shadow-inner">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
-                            index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
-                            index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800' :
-                            index === 3 ? 'bg-gradient-to-r from-indigo-500 to-purple-600' :
-                            'bg-gradient-to-r from-purple-500 to-pink-600'
-                          }`}
-                          style={{ width: `${(data.count / maxAuthorCount) * 100}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Summary Stats */}
-              <div className="grid grid-cols-3 gap-2 md:gap-3 mt-3 md:mt-5 pt-3 md:pt-5 border-t border-gray-200">
-                <div className="text-center bg-yellow-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">1위 저자</div>
-                  <div className="text-xs md:text-sm font-bold text-gray-900 truncate" title={authorStats[0]?.author}>
-                    {authorStats[0]?.author}
-                  </div>
-                </div>
-                <div className="text-center bg-indigo-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">다운로드</div>
-                  <div className="text-xs md:text-sm font-bold text-indigo-600">
-                    {authorStats[0]?.count}권
-                  </div>
-                </div>
-                <div className="text-center bg-purple-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">비중</div>
-                  <div className="text-xs md:text-sm font-bold text-purple-600">
-                    {((authorStats[0]?.count / downloads.length) * 100).toFixed(1)}%
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 독서 여정 */}
           <div className="bg-white rounded-lg shadow-sm p-3 md:p-6 border border-gray-200 mb-4 md:mb-6">
             <div className="flex items-center justify-between mb-4 md:mb-6">
@@ -810,6 +646,170 @@ export default function ActivityPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Top Authors */}
+          {authorStats.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <h3 className="text-sm md:text-base font-semibold text-gray-900">저자 TOP 5</h3>
+                <div className="text-[10px] md:text-xs text-gray-500">전체 기준</div>
+              </div>
+
+              <div className="space-y-3 md:space-y-4">
+                {authorStats.map((data, index) => {
+                  const maxAuthorCount = Math.max(...authorStats.map(a => a.count));
+                  return (
+                    <div key={data.author} className="group">
+                      <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2">
+                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-md flex-shrink-0 ${
+                          index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
+                          index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                          index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800' :
+                          'bg-gradient-to-br from-indigo-500 to-purple-600'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 font-semibold text-gray-900 text-xs md:text-sm truncate group-hover:text-indigo-600 transition-colors min-w-0">
+                          {data.author}
+                        </div>
+                        <div className="text-xs md:text-sm font-bold text-gray-900 flex-shrink-0">
+                          {data.count}권
+                        </div>
+                        <div className="text-[10px] md:text-xs font-medium text-gray-500 w-10 md:w-12 text-right flex-shrink-0">
+                          {((data.count / downloads.length) * 100).toFixed(1)}%
+                        </div>
+                      </div>
+                      <div className="bg-gray-200 rounded-full h-2 md:h-2.5 overflow-hidden shadow-inner">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
+                            index === 1 ? 'bg-gradient-to-r from-gray-400 to-gray-600' :
+                            index === 2 ? 'bg-gradient-to-r from-amber-600 to-amber-800' :
+                            index === 3 ? 'bg-gradient-to-r from-indigo-500 to-purple-600' :
+                            'bg-gradient-to-r from-purple-500 to-pink-600'
+                          }`}
+                          style={{ width: `${(data.count / maxAuthorCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-2 md:gap-3 mt-3 md:mt-5 pt-3 md:pt-5 border-t border-gray-200">
+                <div className="text-center bg-yellow-50 rounded-lg p-2 md:p-3">
+                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">1위 저자</div>
+                  <div className="text-xs md:text-sm font-bold text-gray-900 truncate" title={authorStats[0]?.author}>
+                    {authorStats[0]?.author}
+                  </div>
+                </div>
+                <div className="text-center bg-indigo-50 rounded-lg p-2 md:p-3">
+                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">다운로드</div>
+                  <div className="text-xs md:text-sm font-bold text-indigo-600">
+                    {authorStats[0]?.count}권
+                  </div>
+                </div>
+                <div className="text-center bg-purple-50 rounded-lg p-2 md:p-3">
+                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">비중</div>
+                  <div className="text-xs md:text-sm font-bold text-purple-600">
+                    {((authorStats[0]?.count / downloads.length) * 100).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Time-based Chart with Toggle */}
+          <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <h3 className="text-sm md:text-base font-semibold text-gray-900">다운로드 추세</h3>
+              <div className="flex gap-1 md:gap-2 bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setChartType('monthly')}
+                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                    chartType === 'monthly'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  월별
+                </button>
+                <button
+                  onClick={() => setChartType('yearly')}
+                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                    chartType === 'yearly'
+                      ? 'bg-white text-gray-900 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  연도별
+                </button>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={240}>
+              {chartType === 'monthly' ? (
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis
+                    dataKey="displayMonth"
+                    stroke="#6B7280"
+                    style={{ fontSize: '11px' }}
+                  />
+                  <YAxis
+                    stroke="#6B7280"
+                    style={{ fontSize: '11px' }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    labelStyle={{ fontWeight: 600, color: '#111827' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="count"
+                    stroke={COLORS.primary}
+                    strokeWidth={2}
+                    dot={{ fill: COLORS.primary, r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="다운로드 수"
+                  />
+                </LineChart>
+              ) : (
+                <BarChart data={yearlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis
+                    dataKey="year"
+                    stroke="#6B7280"
+                    style={{ fontSize: '11px' }}
+                  />
+                  <YAxis
+                    stroke="#6B7280"
+                    style={{ fontSize: '11px' }}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E5E7EB',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                    }}
+                    labelStyle={{ fontWeight: 600, color: '#111827' }}
+                  />
+                  <Bar
+                    dataKey="count"
+                    fill={COLORS.primary}
+                    radius={[6, 6, 0, 0]}
+                    name="다운로드 수"
+                  />
+                </BarChart>
+              )}
+            </ResponsiveContainer>
           </div>
         </>
       )}
