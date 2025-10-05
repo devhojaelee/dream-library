@@ -257,7 +257,7 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .eink-search-input {
     font-size: 15px;
     padding: 12px 14px;
@@ -314,5 +314,10 @@
   .eink-header-buttons > * {
     white-space: nowrap;
     flex-shrink: 0;
+  }
+
+  /* Force hide sidebar on mobile */
+  aside.hidden {
+    display: none !important;
   }
 }
