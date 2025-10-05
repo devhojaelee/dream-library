@@ -350,38 +350,36 @@ export default function ActivityPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-4 md:mb-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold text-gray-900">독서 활동 대시보드</h1>
-            {firstDownloadDate && (
-              <p className="text-xs md:text-sm text-gray-500 mt-1">
-                {firstDownloadDate}부터 시작
-              </p>
-            )}
-          </div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">독서 활동 대시보드</h1>
+          {firstDownloadDate && (
+            <p className="text-sm text-gray-500 mt-1">
+              {firstDownloadDate}부터 시작
+            </p>
+          )}
+        </div>
 
-          {/* Time Range Filter */}
-          <div className="grid grid-cols-4 md:flex gap-1 md:gap-2 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
-            {[
-              { value: '3m' as const, label: '3개월' },
-              { value: '6m' as const, label: '6개월' },
-              { value: '12m' as const, label: '12개월' },
-              { value: 'all' as const, label: '전체' },
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setTimeRange(value)}
-                className={`px-3 md:px-4 py-2 rounded-md text-xs md:text-sm font-medium transition-colors min-h-[44px] ${
-                  timeRange === value
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+        {/* Time Range Filter */}
+        <div className="flex gap-2 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+          {[
+            { value: '3m' as const, label: '3개월' },
+            { value: '6m' as const, label: '6개월' },
+            { value: '12m' as const, label: '12개월' },
+            { value: 'all' as const, label: '전체' },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() => setTimeRange(value)}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                timeRange === value
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -398,62 +396,62 @@ export default function ActivityPage() {
       ) : (
         <>
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4 md:mb-6">
-            <div className="bg-white rounded-lg shadow-md p-3 md:p-4 border border-gray-300 hover:shadow-lg transition-shadow">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="bg-white rounded-lg shadow-md p-3 border border-gray-300 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] md:text-xs font-semibold text-gray-700 uppercase tracking-wide">총 다운로드</div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-indigo-500 flex items-center justify-center text-lg md:text-xl shadow-sm">
+                <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide">총 다운로드</div>
+                <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-base shadow-sm">
                   📚
                 </div>
               </div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{downloads.length}권</div>
-              <div className="text-[10px] md:text-xs font-medium text-gray-600 mt-0.5">전체 기간</div>
+              <div className="text-2xl font-bold text-gray-900 tracking-tight">{downloads.length}권</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5">전체 기간</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-3 md:p-4 border border-gray-300 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-md p-3 border border-gray-300 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] md:text-xs font-semibold text-gray-700 uppercase tracking-wide">이번 달</div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-cyan-500 flex items-center justify-center text-lg md:text-xl shadow-sm">
+                <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide">이번 달</div>
+                <div className="w-8 h-8 rounded-lg bg-cyan-500 flex items-center justify-center text-base shadow-sm">
                   📅
                 </div>
               </div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{getThisMonthCount()}권</div>
-              <div className="text-[10px] md:text-xs font-medium text-gray-600 mt-0.5">
-                {new Date().toLocaleDateString('ko-KR', { month: 'long' })}
+              <div className="text-2xl font-bold text-gray-900 tracking-tight">{getThisMonthCount()}권</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5">
+                {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-3 md:p-4 border border-gray-300 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-md p-3 border border-gray-300 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] md:text-xs font-semibold text-gray-700 uppercase tracking-wide">월평균</div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-green-500 flex items-center justify-center text-lg md:text-xl shadow-sm">
+                <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide">월평균</div>
+                <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-base shadow-sm">
                   📊
                 </div>
               </div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{avgMonthly}권</div>
-              <div className="text-[10px] md:text-xs font-medium text-gray-600 mt-0.5">권/월</div>
+              <div className="text-2xl font-bold text-gray-900 tracking-tight">{avgMonthly}권</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5">권/월</div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-3 md:p-4 border border-gray-300 hover:shadow-lg transition-shadow">
+            <div className="bg-white rounded-lg shadow-md p-3 border border-gray-300 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-2">
-                <div className="text-[10px] md:text-xs font-semibold text-gray-700 uppercase tracking-wide">최다 다운로드</div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-amber-500 flex items-center justify-center text-lg md:text-xl shadow-sm">
+                <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide">최다 다운로드</div>
+                <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-base shadow-sm">
                   🔥
                 </div>
               </div>
-              <div className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">{mostActiveMonth.count}권</div>
-              <div className="text-[10px] md:text-xs font-medium text-gray-600 mt-0.5">{mostActiveMonth.displayMonth || '-'}</div>
+              <div className="text-2xl font-bold text-gray-900 tracking-tight">{mostActiveMonth.count}권</div>
+              <div className="text-xs font-medium text-gray-600 mt-0.5">{mostActiveMonth.displayMonth || '-'}</div>
             </div>
           </div>
 
           {/* Time-based Chart with Toggle */}
-          <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <h3 className="text-sm md:text-base font-semibold text-gray-900">다운로드 추세</h3>
-              <div className="flex gap-1 md:gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-gray-900">다운로드 추세</h3>
+              <div className="flex gap-2 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setChartType('monthly')}
-                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     chartType === 'monthly'
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -463,7 +461,7 @@ export default function ActivityPage() {
                 </button>
                 <button
                   onClick={() => setChartType('yearly')}
-                  className={`px-2 md:px-3 py-1.5 md:py-1 rounded text-xs font-medium transition-colors min-h-[36px] ${
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                     chartType === 'yearly'
                       ? 'bg-white text-gray-900 shadow-sm'
                       : 'text-gray-600 hover:text-gray-900'
@@ -473,7 +471,7 @@ export default function ActivityPage() {
                 </button>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={280}>
               {chartType === 'monthly' ? (
                 <LineChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -539,19 +537,19 @@ export default function ActivityPage() {
 
           {/* Top Authors */}
           {authorStats.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-3 md:p-5 border border-gray-200 mb-4 md:mb-6">
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-sm md:text-base font-semibold text-gray-900">저자 TOP 5</h3>
-                <div className="text-[10px] md:text-xs text-gray-500">전체 기준</div>
+            <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-200 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-semibold text-gray-900">저자 TOP 5</h3>
+                <div className="text-xs text-gray-500">전체 다운로드 기준</div>
               </div>
 
-              <div className="space-y-3 md:space-y-4">
+              <div className="space-y-4">
                 {authorStats.map((data, index) => {
                   const maxAuthorCount = Math.max(...authorStats.map(a => a.count));
                   return (
                     <div key={data.author} className="group">
-                      <div className="flex items-center gap-2 md:gap-3 mb-1.5 md:mb-2">
-                        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-bold text-white shadow-md flex-shrink-0 ${
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-md ${
                           index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600' :
                           index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
                           index === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800' :
@@ -559,17 +557,17 @@ export default function ActivityPage() {
                         }`}>
                           {index + 1}
                         </div>
-                        <div className="flex-1 font-semibold text-gray-900 text-xs md:text-sm truncate group-hover:text-indigo-600 transition-colors min-w-0">
+                        <div className="flex-1 font-semibold text-gray-900 text-sm truncate group-hover:text-indigo-600 transition-colors">
                           {data.author}
                         </div>
-                        <div className="text-xs md:text-sm font-bold text-gray-900 flex-shrink-0">
+                        <div className="text-sm font-bold text-gray-900">
                           {data.count}권
                         </div>
-                        <div className="text-[10px] md:text-xs font-medium text-gray-500 w-10 md:w-12 text-right flex-shrink-0">
+                        <div className="text-xs font-medium text-gray-500 w-12 text-right">
                           {((data.count / downloads.length) * 100).toFixed(1)}%
                         </div>
                       </div>
-                      <div className="bg-gray-200 rounded-full h-2 md:h-2.5 overflow-hidden shadow-inner">
+                      <div className="bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-inner">
                         <div
                           className={`h-full transition-all duration-500 ${
                             index === 0 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600' :
@@ -587,22 +585,22 @@ export default function ActivityPage() {
               </div>
 
               {/* Summary Stats */}
-              <div className="grid grid-cols-3 gap-2 md:gap-3 mt-3 md:mt-5 pt-3 md:pt-5 border-t border-gray-200">
-                <div className="text-center bg-yellow-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">1위 저자</div>
-                  <div className="text-xs md:text-sm font-bold text-gray-900 truncate" title={authorStats[0]?.author}>
+              <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-gray-200">
+                <div className="text-center bg-yellow-50 rounded-lg p-3">
+                  <div className="text-xs text-gray-600 font-medium mb-1">1위 저자</div>
+                  <div className="text-sm font-bold text-gray-900 truncate" title={authorStats[0]?.author}>
                     {authorStats[0]?.author}
                   </div>
                 </div>
-                <div className="text-center bg-indigo-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">다운로드</div>
-                  <div className="text-xs md:text-sm font-bold text-indigo-600">
+                <div className="text-center bg-indigo-50 rounded-lg p-3">
+                  <div className="text-xs text-gray-600 font-medium mb-1">1위 다운로드</div>
+                  <div className="text-sm font-bold text-indigo-600">
                     {authorStats[0]?.count}권
                   </div>
                 </div>
-                <div className="text-center bg-purple-50 rounded-lg p-2 md:p-3">
-                  <div className="text-[10px] md:text-xs text-gray-600 font-medium mb-1">비중</div>
-                  <div className="text-xs md:text-sm font-bold text-purple-600">
+                <div className="text-center bg-purple-50 rounded-lg p-3">
+                  <div className="text-xs text-gray-600 font-medium mb-1">1위 비중</div>
+                  <div className="text-sm font-bold text-purple-600">
                     {((authorStats[0]?.count / downloads.length) * 100).toFixed(1)}%
                   </div>
                 </div>
@@ -611,22 +609,22 @@ export default function ActivityPage() {
           )}
 
           {/* 독서 여정 */}
-          <div className="bg-white rounded-lg shadow-sm p-3 md:p-6 border border-gray-200 mb-4 md:mb-6">
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <h3 className="text-base md:text-lg font-bold text-gray-900">독서 여정</h3>
-              <div className="text-xs md:text-sm font-semibold text-gray-500">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 mb-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-gray-900">독서 여정</h3>
+              <div className="text-sm font-semibold text-gray-500">
                 {milestones.filter(m => m.achieved).length} / {milestones.length} 달성
               </div>
             </div>
 
             {/* Progress Overview */}
-            <div className="bg-gray-50 rounded-lg p-3 md:p-5 mb-3 md:mb-5 border border-gray-100">
+            <div className="bg-gray-50 rounded-lg p-5 mb-5 border border-gray-100">
               <div className="flex items-end justify-between mb-3">
                 <div>
-                  <div className="text-[10px] md:text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">
                     현재 단계
                   </div>
-                  <div className="text-base md:text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900">
                     {milestones.filter(m => m.achieved).length === 0
                       ? '시작 전'
                       : milestones[milestones.filter(m => m.achieved).length - 1]?.title
@@ -634,10 +632,10 @@ export default function ActivityPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[10px] md:text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">
+                  <div className="text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">
                     총 다운로드
                   </div>
-                  <div className="text-base md:text-2xl font-bold text-slate-700">
+                  <div className="text-2xl font-bold text-slate-700">
                     {downloads.length}권
                   </div>
                 </div>
@@ -652,50 +650,50 @@ export default function ActivityPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] md:text-xs font-medium text-gray-600">0</span>
-                  <span className="text-[10px] md:text-xs font-medium text-gray-600">{milestones.length}</span>
+                  <span className="text-xs font-medium text-gray-600">0</span>
+                  <span className="text-xs font-medium text-gray-600">{milestones.length}</span>
                 </div>
               </div>
             </div>
 
             {/* Next Milestone - Gamified but Professional */}
             {nextMilestone && (
-              <div className="relative bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg p-3 md:p-5 mb-3 md:mb-5 overflow-hidden shadow-md">
+              <div className="relative bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg p-5 mb-5 overflow-hidden shadow-md">
                 {/* Subtle decorative elements */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-12 -mb-12"></div>
 
                 <div className="relative z-10">
-                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-xl md:text-2xl group-hover:scale-110 transition-transform flex-shrink-0">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-lg bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                       {milestones[milestones.filter(m => m.achieved).length]?.icon}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] md:text-xs font-semibold text-white opacity-80 uppercase tracking-wider mb-1">
+                    <div className="flex-1">
+                      <div className="text-xs font-semibold text-white opacity-80 uppercase tracking-wider mb-1">
                         다음 목표
                       </div>
-                      <div className="text-base md:text-xl font-bold text-white truncate">
+                      <div className="text-xl font-bold text-white">
                         {nextMilestone.title}
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-xl md:text-3xl font-bold text-white">
+                    <div className="text-right">
+                      <div className="text-3xl font-bold text-white">
                         {nextMilestone.remaining}
                       </div>
-                      <div className="text-[10px] md:text-xs font-semibold text-white opacity-80">
+                      <div className="text-xs font-semibold text-white opacity-80">
                         권 남음
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <div className="bg-white bg-opacity-20 rounded-full h-2 md:h-2.5 overflow-hidden">
+                    <div className="bg-white bg-opacity-20 rounded-full h-2.5 overflow-hidden">
                       <div
                         className="h-full bg-white transition-all duration-500"
                         style={{ width: `${nextMilestone.progress}%` }}
                       />
                     </div>
-                    <div className="flex items-center justify-between text-white text-[10px] md:text-xs font-medium opacity-90">
+                    <div className="flex items-center justify-between text-white text-xs font-medium opacity-90">
                       <span>{downloads.length} / {nextMilestone.target}</span>
                       <span>{nextMilestone.progress.toFixed(0)}%</span>
                     </div>
@@ -703,7 +701,7 @@ export default function ActivityPage() {
 
                   {nextMilestone.remaining <= 5 && (
                     <div className="mt-3 bg-yellow-400 bg-opacity-90 rounded-lg px-3 py-2">
-                      <p className="text-[10px] md:text-xs font-bold text-gray-900 text-center">
+                      <p className="text-xs font-bold text-gray-900 text-center">
                         🔥 거의 다 왔어요! 단 {nextMilestone.remaining}권!
                       </p>
                     </div>
@@ -713,7 +711,7 @@ export default function ActivityPage() {
             )}
 
             {/* Milestone Cards - Balanced */}
-            <div className="grid grid-cols-3 gap-2 md:gap-3 mb-3 md:mb-5">
+            <div className="grid grid-cols-3 gap-3 mb-5">
               {(() => {
                 const achievedCount = milestones.filter(m => m.achieved).length;
                 const visibleMilestones = milestones.slice(
@@ -728,7 +726,7 @@ export default function ActivityPage() {
                   return (
                     <div
                       key={milestone.target}
-                      className={`relative rounded-lg p-2 md:p-3 text-center transition-all duration-300 ${
+                      className={`relative rounded-lg p-3 text-center transition-all duration-300 ${
                         milestone.achieved
                           ? 'bg-gradient-to-br from-slate-600 to-slate-700 text-white shadow-md hover:shadow-lg transform hover:scale-105'
                           : isNext
@@ -737,31 +735,31 @@ export default function ActivityPage() {
                       }`}
                     >
                       {milestone.achieved && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 md:w-5 md:h-5 rounded-full bg-green-400 flex items-center justify-center shadow-md">
-                          <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-green-400 flex items-center justify-center shadow-md">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
                       {isNext && (
-                        <div className="absolute -top-1.5 -right-1.5 bg-slate-700 text-white text-[8px] md:text-[9px] font-bold px-1 md:px-1.5 py-0.5 rounded-full shadow-sm">
+                        <div className="absolute -top-1.5 -right-1.5 bg-slate-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">
                           NEXT
                         </div>
                       )}
-                      <div className={`text-[9px] md:text-[10px] font-semibold mb-0.5 md:mb-1 ${
+                      <div className={`text-[10px] font-semibold mb-1 ${
                         milestone.achieved ? 'text-white opacity-80' :
                         isNext ? 'text-amber-700' : 'text-gray-500'
                       }`}>
                         {actualIndex + 1}단계
                       </div>
-                      <div className="text-xl md:text-2xl mb-0.5 md:mb-1">{milestone.icon}</div>
-                      <div className={`text-sm md:text-base font-bold ${
+                      <div className="text-2xl mb-1">{milestone.icon}</div>
+                      <div className={`text-base font-bold ${
                         milestone.achieved ? 'text-white' :
                         isNext ? 'text-gray-900' : 'text-gray-400'
                       }`}>
                         {milestone.target}
                       </div>
-                      <div className={`text-[9px] md:text-[10px] font-semibold truncate ${
+                      <div className={`text-[10px] font-semibold ${
                         milestone.achieved ? 'text-white opacity-90' :
                         isNext ? 'text-amber-700' : 'text-gray-400'
                       }`}>
@@ -774,38 +772,38 @@ export default function ActivityPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 gap-3 md:gap-4 pt-3 md:pt-5 border-t border-gray-200">
+            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-gray-200">
               <div className="text-center">
-                <div className="text-[10px] md:text-xs font-medium text-gray-500 mb-1 md:mb-2 uppercase tracking-wider">
+                <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">
                   월평균 페이스
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900">
                   {avgMonthly}
                 </div>
-                <div className="text-[10px] md:text-xs font-medium text-gray-500 mt-1">
+                <div className="text-xs font-medium text-gray-500 mt-1">
                   권/월
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-[10px] md:text-xs font-medium text-gray-500 mb-1 md:mb-2 uppercase tracking-wider">
+                <div className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wider">
                   {nextMilestone ? '다음 목표까지' : '전체 달성'}
                 </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-gray-900">
                   {nextMilestone ? nextMilestone.remaining : milestones.length}
                 </div>
-                <div className="text-[10px] md:text-xs font-medium text-gray-500 mt-1">
+                <div className="text-xs font-medium text-gray-500 mt-1">
                   {nextMilestone ? '권' : '개'}
                 </div>
               </div>
             </div>
 
             {!nextMilestone && downloads.length > 0 && (
-              <div className="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-4 md:p-6 text-center mt-3 md:mt-5">
-                <div className="text-4xl md:text-5xl mb-2 md:mb-3">🏆</div>
-                <div className="text-lg md:text-xl font-bold text-gray-900 mb-1 md:mb-2">
+              <div className="bg-gradient-to-br from-slate-50 to-gray-50 border-2 border-slate-200 rounded-lg p-6 text-center mt-5">
+                <div className="text-5xl mb-3">🏆</div>
+                <div className="text-xl font-bold text-gray-900 mb-2">
                   모든 마일스톤 달성!
                 </div>
-                <div className="text-xs md:text-sm text-gray-600">
+                <div className="text-sm text-gray-600">
                   천권을 달성한 진정한 독서가입니다
                 </div>
               </div>

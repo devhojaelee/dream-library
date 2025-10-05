@@ -58,19 +58,18 @@ export default function MyPageLayout({
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-100 via-purple-50 to-pink-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm sticky top-0 z-10">
-        <div className="px-4 md:px-6 py-4">
-          {/* Mobile: Stack layout, Desktop: Horizontal layout */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-300 shadow-sm sticky top-0 z-50">
+        <div className="px-4 md:px-6 py-3 md:py-4">
+          <div className="flex items-center justify-between md:flex-row md:items-center md:justify-between md:gap-0">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-10 h-10 md:w-8 md:h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg md:text-base">
                 M
               </div>
-              <h1 className="text-xl font-bold text-gray-900">마이페이지</h1>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">마이페이지</h1>
             </div>
             <Link
               href="/"
-              className="text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-end gap-2 min-h-[44px]"
+              className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2 min-h-[44px] px-3 md:px-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -80,23 +79,23 @@ export default function MyPageLayout({
           </div>
         </div>
 
-        {/* Mobile: Horizontal scroll navigation */}
-        <nav className="md:hidden px-4 pb-3 overflow-x-auto">
-          <div className="flex gap-2">
+        {/* Mobile: Tab navigation */}
+        <nav className="md:hidden border-t border-gray-200">
+          <div className="grid grid-cols-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm whitespace-nowrap min-h-[44px] ${
+                  className={`flex flex-col items-center justify-center gap-1 py-3 min-h-[64px] transition-all border-b-2 ${
                     isActive
-                      ? 'bg-purple-600 text-white font-semibold'
-                      : 'bg-white text-gray-700 border border-gray-300'
+                      ? 'bg-purple-50 border-purple-600 text-purple-700'
+                      : 'bg-white border-transparent text-gray-600'
                   }`}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span className="text-2xl">{item.icon}</span>
+                  <span className="text-sm font-semibold">{item.label}</span>
                 </Link>
               );
             })}
@@ -131,7 +130,7 @@ export default function MyPageLayout({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-3 md:p-8">
           <div className="max-w-4xl mx-auto">
             {children}
           </div>
