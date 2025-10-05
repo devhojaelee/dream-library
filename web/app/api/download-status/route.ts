@@ -3,6 +3,51 @@ import { verifyToken, getDownloads } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
 
+// Get crawler download status
+export async function GET() {
+  try {
+    const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
+    const statusPath = path.join(booksDir, 'download_status.json');
+
+    // Check if status file exists
+    if (!fs.existsSync(statusPath)) {
+      return NextResponse.json({
+        status: 'ready',
+        message: '새로운 책을 다운로드할 수 있습니다!'
+      });
+    }
+
+    // Read status file
+    const statusData = JSON.parse(fs.readFileSync(statusPath, 'utf-8'));
+    const waitUntil = new Date(statusData.waitUntil);
+    const now = new Date();
+
+    // Check if wait time has passed
+    if (now >= waitUntil) {
+      return NextResponse.json({
+        status: 'ready',
+        message: '새로운 책을 다운로드할 수 있습니다!'
+      });
+    }
+
+    // Still waiting
+    const remainingMs = waitUntil.getTime() - now.getTime();
+    return NextResponse.json({
+      status: 'waiting',
+      waitUntil: statusData.waitUntil,
+      remainingMs,
+      message: '다운로드 대기 중입니다.'
+    });
+
+  } catch (error) {
+    console.error('Error reading download status:', error);
+    return NextResponse.json({
+      status: 'ready',
+      message: '새로운 책을 다운로드할 수 있습니다!'
+    });
+  }
+}
+
 // Toggle download status
 export async function POST(request: NextRequest) {
   try {

@@ -15,6 +15,7 @@ interface Book {
   description: string | null;
   author: string | null;
   year: string | null;
+  downloadedAt?: string;
 }
 
 interface User {
@@ -36,6 +37,8 @@ export default function EinkHome() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [encouragementMsg, setEncouragementMsg] = useState('');
+  const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [showRecentOnly, setShowRecentOnly] = useState(false);
   const router = useRouter();
   const BOOKS_PER_PAGE = 10;
 
@@ -50,6 +53,26 @@ export default function EinkHome() {
   };
 
   useEffect(() => {
+    // Load download status (E-ink: no real-time countdown, only initial value)
+    fetch('/api/download-status')
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'waiting' && data.waitUntil) {
+          const now = new Date().getTime();
+          const waitUntil = new Date(data.waitUntil).getTime();
+          const remaining = waitUntil - now;
+
+          if (remaining > 0) {
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            setDownloadStatus({ hours, minutes, seconds });
+          }
+        }
+      })
+      .catch(err => console.error('Failed to fetch download status:', err));
+
     // Load user data
     fetch('/api/auth/me')
       .then(res => res.json())
@@ -92,7 +115,7 @@ export default function EinkHome() {
       });
   }, []);
 
-  // Filter books based on hideDownloaded and search query
+  // Filter books based on hideDownloaded, search query, and showRecentOnly
   useEffect(() => {
     let filteredBooks = allBooks;
 
@@ -106,6 +129,18 @@ export default function EinkHome() {
       );
     }
 
+    // Apply recent-only filter (last 7 days)
+    if (showRecentOnly) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      filteredBooks = filteredBooks.filter(book => {
+        if (!book.downloadedAt) return false;
+        const downloadedDate = new Date(book.downloadedAt);
+        return downloadedDate > sevenDaysAgo;
+      });
+    }
+
     // Apply downloaded filter
     if (hideDownloaded && user) {
       filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
@@ -113,7 +148,7 @@ export default function EinkHome() {
 
     setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
     setPage(1);
-  }, [hideDownloaded, allBooks, user, searchQuery]);
+  }, [hideDownloaded, allBooks, user, searchQuery, showRecentOnly]);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -136,6 +171,18 @@ export default function EinkHome() {
         book.author?.toLowerCase().includes(query) ||
         book.filename.toLowerCase().includes(query)
       );
+    }
+
+    // Apply recent-only filter (last 7 days)
+    if (showRecentOnly) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      filteredBooks = filteredBooks.filter(book => {
+        if (!book.downloadedAt) return false;
+        const downloadedDate = new Date(book.downloadedAt);
+        return downloadedDate > sevenDaysAgo;
+      });
     }
 
     // Apply downloaded filter
@@ -352,7 +399,7 @@ export default function EinkHome() {
         </div>
 
         {/* Encouragement Banner */}
-        {user && encouragementMsg && (
+        {user && (encouragementMsg || downloadStatus) && (
           <div style={{
             background: '#000000',
             color: '#ffffff',
@@ -367,10 +414,24 @@ export default function EinkHome() {
               justifyContent: 'center',
               gap: '8px',
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              flexWrap: 'wrap'
             }}>
-              <span>🎉</span>
-              <span>이번 달 {getThisMonthDownloads()}권 · {encouragementMsg}</span>
+              {encouragementMsg && (
+                <>
+                  <span>🎉</span>
+                  <span>이번 달 {getThisMonthDownloads()}권 · {encouragementMsg}</span>
+                </>
+              )}
+              {encouragementMsg && downloadStatus && (
+                <span style={{ margin: '0 4px' }}>|</span>
+              )}
+              {downloadStatus && (
+                <span>
+                  {downloadStatus.hours > 0 && `${downloadStatus.hours}시간 `}
+                  {downloadStatus.minutes}분 {downloadStatus.seconds}초 후에 신작 10권이 입고됩니다
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -423,31 +484,46 @@ export default function EinkHome() {
           )}
         </div>
 
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{
-            fontSize: '24px',
-            fontWeight: 700,
-            marginBottom: '8px'
-          }}>
-            전체 도서 ({getFilteredBooks().length}권)
-          </h2>
-          <p style={{
-            fontSize: '18px',
-            marginBottom: '12px'
-          }}>
-            {page}페이지 / 총 {Math.ceil(getFilteredBooks().length / BOOKS_PER_PAGE)}페이지
-          </p>
+        <div style={{
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}>
+          <div>
+            <h2 style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              marginBottom: '8px'
+            }}>
+              전체 도서 ({getFilteredBooks().length}권)
+            </h2>
+            <p style={{
+              fontSize: '18px'
+            }}>
+              {page}페이지 / 총 {Math.ceil(getFilteredBooks().length / BOOKS_PER_PAGE)}페이지
+            </p>
+          </div>
 
-          {/* Filter Toggle */}
-          {user && user.downloadedBooks.length > 0 && (
+          {/* Filter Toggles */}
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setHideDownloaded(!hideDownloaded)}
-              className={hideDownloaded ? 'eink-button-primary' : 'eink-button'}
-              style={{ marginTop: '8px' }}
+              onClick={() => setShowRecentOnly(!showRecentOnly)}
+              className={showRecentOnly ? 'eink-button-primary' : 'eink-button'}
             >
-              {hideDownloaded ? '☑' : '☐'} 다운로드한 도서 제외
+              {showRecentOnly ? '☑' : '☐'} 최근 일주일간 입고된 신작
             </button>
-          )}
+            {user && user.downloadedBooks.length > 0 && (
+              <button
+                onClick={() => setHideDownloaded(!hideDownloaded)}
+                className={hideDownloaded ? 'eink-button-primary' : 'eink-button'}
+              >
+                {hideDownloaded ? '☑' : '☐'} 다운로드한 도서 제외
+              </button>
+            )}
+          </div>
         </div>
 
         {allBooks.length === 0 ? (

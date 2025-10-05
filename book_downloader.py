@@ -3,7 +3,7 @@ import time
 import os
 import re
 import json
-import hashlib
+from datetime import datetime, timedelta
 
 # 제외 키워드
 EXCLUDED = ['주식', '금융', '투자', '재테크', '경제학', '증권', '자본가', '자본',
@@ -42,15 +42,15 @@ def download_incremental():
         try:
             # Login
             print("\n🔐 Logging in...")
-            page.goto("https://z-library.ec/", timeout=60000)
+            page.goto("https://ko.z-library.ec/", timeout=60000)
             time.sleep(2)
 
-            page.click('a:has-text("Log In")')
+            page.click('a:has-text("Log In"), a:has-text("로그인")')
             time.sleep(2)
 
             page.locator('input[name="email"]').first.fill("yslhj93@gmail.com")
             page.locator('input[name="password"]').first.fill("badtoc-8vivJa-cogjes")
-            page.locator('button:has-text("Log In")').first.click()
+            page.locator('button:has-text("Log In"), button:has-text("로그인")').first.click()
             time.sleep(3)
 
             print("✅ Logged in\n")
@@ -60,16 +60,46 @@ def download_incremental():
             page.wait_for_load_state('networkidle', timeout=10000)
             time.sleep(2)
 
-            # Scroll to recommended
-            print("📜 Finding Personally Recommended...")
+            # Try to find recommended section (with timeout fallback)
+            print("📜 Checking page structure...")
             for _ in range(5):
                 page.evaluate("window.scrollBy(0, 500)")
                 time.sleep(0.5)
 
-            recommended = page.locator('text=/Personally recommended/i').first
-            recommended.scroll_into_view_if_needed()
+            try:
+                # Try multiple selectors
+                selectors = [
+                    'text=/Personally recommended/i',
+                    'text=/개인 추천/i',
+                    'text=/Most popular/i',
+                    'text=/가장 인기 있는/i',
+                    'h2, h3, .section-title'  # Fallback: any section headers
+                ]
+
+                recommended = None
+                for selector in selectors:
+                    try:
+                        loc = page.locator(selector).first
+                        if loc.count() > 0:
+                            print(f"  ✅ Found section with selector: {selector}")
+                            loc.scroll_into_view_if_needed(timeout=5000)
+                            recommended = loc
+                            break
+                    except:
+                        continue
+
+                if not recommended:
+                    print("  ⚠️  Could not find recommended section - will try to download visible books")
+                    # Scroll to ensure books are loaded
+                    for _ in range(3):
+                        page.evaluate("window.scrollBy(0, 800)")
+                        time.sleep(0.5)
+            except Exception as e:
+                print(f"  ⚠️  Section finder failed: {str(e)[:50]}")
+                print("  → Continuing with visible books...")
+
             time.sleep(2)
-            print("✅ Found section\n")
+            print("✅ Ready to collect books\n")
 
             # Main loop: download batch, then load more
             round_number = 0
@@ -159,7 +189,7 @@ def download_incremental():
                         print(f"{'='*70}")
 
                         try:
-                            book_url = f"https://z-library.ec{href}"
+                            book_url = f"https://ko.z-library.ec{href}"
                             print(f"  → Navigating: {book_url[:80]}...")
                             page.goto(book_url, timeout=90000)
                             time.sleep(1)
@@ -193,7 +223,7 @@ def download_incremental():
                                         cover_src = cover_img.get_attribute('src')
                                         if cover_src:
                                             if not cover_src.startswith('http'):
-                                                cover_src = f"https://z-library.ec{cover_src}"
+                                                cover_src = f"https://ko.z-library.ec{cover_src}"
                                             cover_src_url = cover_src
                                             cover_ext = cover_src.split('.')[-1].split('?')[0] or 'jpg'
                                             print(f"    📷 Cover URL found")
@@ -265,6 +295,7 @@ def download_incremental():
                                 # Save metadata JSON with same filename base
                                 metadata['filename'] = filename
                                 metadata['filesize'] = filesize
+                                metadata['downloadedAt'] = datetime.now().isoformat()
 
                                 metadata_filename = f"{safe_title[:100]}.json"
                                 metadata_path = f"./books/metadata/{metadata_filename}"
@@ -281,9 +312,11 @@ def download_incremental():
                                 idx += 1
 
                         except Exception as e:
-                            # Check for download limit
+                            # Check for download limit (English + Korean)
                             if 'dailylimit' in page.url.lower() or \
-                               page.locator('text=/daily.*limit.*reached/i').count() > 0:
+                               page.locator('text=/daily.*limit.*reached/i').count() > 0 or \
+                               page.locator('text=/1일.*제한.*최대/i').count() > 0 or \
+                               page.locator('text=/제한.*도달/i').count() > 0:
                                 print(f"\n⏳ Download limit detected!")
 
                                 page_text = page.content()
@@ -313,9 +346,32 @@ def download_incremental():
                                     print(f"  ⏰ Need to wait {wait_minutes}m = {total_wait_seconds}s")
 
                                 if total_wait_seconds > 0:
+                                    # Save download status for web UI
+                                    wait_until = datetime.now() + timedelta(seconds=total_wait_seconds)
+                                    status_data = {
+                                        "waitUntil": wait_until.isoformat(),
+                                        "lastUpdate": datetime.now().isoformat()
+                                    }
+                                    status_path = "./books/download_status.json"
+                                    try:
+                                        with open(status_path, 'w', encoding='utf-8') as f:
+                                            json.dump(status_data, f, ensure_ascii=False, indent=2)
+                                        print(f"  📝 Saved download status: wait until {wait_until.strftime('%Y-%m-%d %H:%M:%S')}")
+                                    except Exception as status_err:
+                                        print(f"  ⚠️ Could not save status: {status_err}")
+
                                     print(f"  💤 Waiting {total_wait_seconds + 10}s...")
                                     time.sleep(total_wait_seconds + 10)
                                     print(f"  ✅ Wait completed! Retrying this book...")
+
+                                    # Clear download status after wait
+                                    try:
+                                        if os.path.exists(status_path):
+                                            os.remove(status_path)
+                                            print(f"  🗑️ Cleared download status")
+                                    except Exception as clear_err:
+                                        print(f"  ⚠️ Could not clear status: {clear_err}")
+
                                     # Don't increment idx, retry the same book
                                     continue
                                 else:
@@ -327,7 +383,7 @@ def download_incremental():
                             idx += 1
 
                         # Return to main page
-                        page.goto("https://z-library.ec/", timeout=60000)
+                        page.goto("https://ko.z-library.ec/", timeout=60000)
                         time.sleep(1)
                         for _ in range(5):
                             page.evaluate("window.scrollBy(0, 500)")
@@ -344,6 +400,8 @@ def download_incremental():
                     load_more_selectors = [
                         'button:has-text("Load more")',
                         'a:has-text("Load more")',
+                        'button:has-text("업로드 계속")',
+                        'a:has-text("업로드 계속")',
                         '.load-more'
                     ]
 

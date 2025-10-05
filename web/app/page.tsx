@@ -15,6 +15,7 @@ interface Book {
   description: string | null;
   author: string | null;
   year: string | null;
+  downloadedAt?: string;
 }
 
 interface User {
@@ -43,6 +44,8 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [encouragementMsg, setEncouragementMsg] = useState('');
+  const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
+  const [showRecentOnly, setShowRecentOnly] = useState(false);
   const router = useRouter();
   const BOOKS_PER_PAGE = 20;
 
@@ -57,6 +60,41 @@ export default function Home() {
   };
 
   useEffect(() => {
+    // Load download status
+    const fetchDownloadStatus = async () => {
+      try {
+        const response = await fetch('/api/download-status');
+        const data = await response.json();
+
+        if (data.status === 'waiting' && data.waitUntil) {
+          const updateCountdown = () => {
+            const now = new Date().getTime();
+            const waitUntil = new Date(data.waitUntil).getTime();
+            const remaining = waitUntil - now;
+
+            if (remaining <= 0) {
+              setDownloadStatus(null);
+              return;
+            }
+
+            const hours = Math.floor(remaining / (1000 * 60 * 60));
+            const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            setDownloadStatus({ hours, minutes, seconds });
+          };
+
+          updateCountdown();
+          const interval = setInterval(updateCountdown, 1000);
+          return () => clearInterval(interval);
+        }
+      } catch (error) {
+        console.error('Failed to fetch download status:', error);
+      }
+    };
+
+    fetchDownloadStatus();
+
     // Load user data
     fetch('/api/auth/me')
       .then(res => res.json())
@@ -99,7 +137,7 @@ export default function Home() {
       });
   }, []);
 
-  // Filter books based on hideDownloaded and search query
+  // Filter books based on hideDownloaded, showRecentOnly and search query
   useEffect(() => {
     let filteredBooks = allBooks;
 
@@ -118,9 +156,21 @@ export default function Home() {
       filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
     }
 
+    // Apply recent books filter (last 7 days)
+    if (showRecentOnly) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      filteredBooks = filteredBooks.filter(book => {
+        if (!book.downloadedAt) return false;
+        const downloadedDate = new Date(book.downloadedAt);
+        return downloadedDate > sevenDaysAgo;
+      });
+    }
+
     setDisplayedBooks(filteredBooks.slice(0, BOOKS_PER_PAGE));
     setPage(1);
-  }, [hideDownloaded, allBooks, user, searchQuery]);
+  }, [hideDownloaded, showRecentOnly, allBooks, user, searchQuery]);
 
   // Create shooting stars dynamically based on viewport
   const createShootingStar = useCallback(() => {
@@ -198,6 +248,18 @@ export default function Home() {
     // Apply downloaded filter
     if (hideDownloaded && user) {
       filteredBooks = filteredBooks.filter(book => !user.downloadedBooks.includes(book.id));
+    }
+
+    // Apply recent books filter (last 7 days)
+    if (showRecentOnly) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      filteredBooks = filteredBooks.filter(book => {
+        if (!book.downloadedAt) return false;
+        const downloadedDate = new Date(book.downloadedAt);
+        return downloadedDate > sevenDaysAgo;
+      });
     }
 
     return filteredBooks;
@@ -328,13 +390,29 @@ export default function Home() {
         </div>
 
         {/* Encouragement Banner */}
-        {user && encouragementMsg && (
+        {user && (encouragementMsg || downloadStatus) && (
           <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 border-t border-gray-200 py-2">
-            <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2">
-              <span className="text-base">🎉</span>
-              <span className="text-sm font-medium text-gray-700">
-                이번 달 <span className="font-semibold text-purple-600">{getThisMonthDownloads()}권</span> 다운로드 · {encouragementMsg}
-              </span>
+            <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2 flex-wrap">
+              {encouragementMsg && (
+                <>
+                  <span className="text-base">🎉</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    이번 달 <span className="font-semibold text-purple-600">{getThisMonthDownloads()}권</span> 다운로드 · {encouragementMsg}
+                  </span>
+                </>
+              )}
+              {encouragementMsg && downloadStatus && (
+                <span className="text-gray-400 mx-1">|</span>
+              )}
+              {downloadStatus && (
+                <span className="text-sm font-medium text-gray-700">
+                  <span className="font-semibold text-purple-600">
+                    {downloadStatus.hours > 0 && `${downloadStatus.hours}시간 `}
+                    {downloadStatus.minutes}분 {downloadStatus.seconds}초
+                  </span>
+                  {' '}후에 신작 10권이 입고됩니다
+                </span>
+              )}
             </div>
           </div>
         )}
@@ -379,20 +457,34 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Filter Toggle */}
-          {user && user.downloadedBooks.length > 0 && (
+          {/* Filter Toggles */}
+          <div className="flex gap-3 flex-wrap">
             <button
-              onClick={() => setHideDownloaded(!hideDownloaded)}
+              onClick={() => setShowRecentOnly(!showRecentOnly)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
-                hideDownloaded
-                  ? 'bg-blue-500 text-white hover:bg-blue-600 border-blue-500'
+                showRecentOnly
+                  ? 'bg-purple-500 text-white hover:bg-purple-600 border-purple-500'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
               }`}
             >
-              <span>{hideDownloaded ? '✅' : '☐'}</span>
-              <span>다운로드한 도서 제외</span>
+              <span>{showRecentOnly ? '✅' : '☐'}</span>
+              <span>최근 일주일간 입고된 신작</span>
             </button>
-          )}
+
+            {user && user.downloadedBooks.length > 0 && (
+              <button
+                onClick={() => setHideDownloaded(!hideDownloaded)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
+                  hideDownloaded
+                    ? 'bg-blue-500 text-white hover:bg-blue-600 border-blue-500'
+                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                }`}
+              >
+                <span>{hideDownloaded ? '✅' : '☐'}</span>
+                <span>다운로드한 도서 제외</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {allBooks.length === 0 ? (
