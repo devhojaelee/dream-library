@@ -36,6 +36,8 @@ export async function GET() {
         year: metadata.year || null,
         description: metadata.description || null,
         cover: metadata.cover || null,
+        coverUpdated: metadata.cover_updated || null,
+        needsReview: metadata.needs_review || false,
         size: stats.size,
         addedDate: stats.birthtime,
         metadataPath: fs.existsSync(metadataPath) ? metadataPath : null,

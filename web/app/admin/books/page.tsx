@@ -10,6 +10,8 @@ interface Book {
   year: string | null;
   description: string | null;
   cover: string | null;
+  coverUpdated: string | null;
+  needsReview: boolean;
   size: number;
   addedDate: string;
   metadataPath: string | null;
@@ -29,6 +31,7 @@ export default function AdminBooksPage() {
   // Search & Filter
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'title'>('newest');
+  const [showOnlyReview, setShowOnlyReview] = useState(false);
 
   // Edit modal
   const [editingBook, setEditingBook] = useState<Book | null>(null);
@@ -41,6 +44,19 @@ export default function AdminBooksPage() {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Naver search
+  interface NaverBookResult {
+    title: string;
+    author: string;
+    publisher: string;
+    pubdate: string;
+    description: string;
+    imageUrl: string;
+  }
+  const [naverSearching, setNaverSearching] = useState(false);
+  const [naverResults, setNaverResults] = useState<NaverBookResult[]>([]);
+  const [showNaverResults, setShowNaverResults] = useState(false);
 
   const loadBooks = async () => {
     try {
@@ -78,6 +94,11 @@ export default function AdminBooksPage() {
       );
     }
 
+    // Review filter
+    if (showOnlyReview) {
+      result = result.filter((book) => book.needsReview);
+    }
+
     // Sort
     result.sort((a, b) => {
       if (sortOrder === 'newest') {
@@ -91,7 +112,7 @@ export default function AdminBooksPage() {
 
     setFilteredBooks(result);
     setCurrentPage(1);
-  }, [searchTerm, sortOrder, books]);
+  }, [searchTerm, sortOrder, showOnlyReview, books]);
 
   // Pagination
   const totalPages = Math.ceil(filteredBooks.length / itemsPerPage);
@@ -115,7 +136,7 @@ export default function AdminBooksPage() {
       description: book.description || '',
     });
     setCoverImage(null);
-    setCoverPreview(book.cover ? `/api/covers/${book.cover}` : null);
+    setCoverPreview(book.cover ? `/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}` : null);
   };
 
   const closeEditModal = () => {
@@ -123,6 +144,64 @@ export default function AdminBooksPage() {
     setEditForm({ title: '', author: '', year: '', description: '' });
     setCoverImage(null);
     setCoverPreview(null);
+    setNaverResults([]);
+    setShowNaverResults(false);
+  };
+
+  const handleNaverSearch = async () => {
+    if (!editForm.title) {
+      alert('제목을 입력해주세요');
+      return;
+    }
+
+    try {
+      setNaverSearching(true);
+      setShowNaverResults(true);
+
+      const res = await fetch('/api/admin/search-naver-books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: editForm.title }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || '검색 실패');
+      }
+
+      setNaverResults(data.results || []);
+
+      if (data.results.length === 0) {
+        alert('검색 결과가 없습니다');
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '검색 중 오류 발생');
+    } finally {
+      setNaverSearching(false);
+    }
+  };
+
+  const selectNaverResult = async (result: NaverBookResult) => {
+    // 폼에 정보 채우기
+    setEditForm({
+      title: result.title,
+      author: result.author,
+      year: result.pubdate,
+      description: result.description,
+    });
+
+    // 표지 이미지 URL을 미리보기로만 설정 (실제 다운로드는 서버에서 처리)
+    if (result.imageUrl) {
+      setCoverPreview(result.imageUrl);
+      // coverImage는 null로 두고, 나중에 저장할 때 서버에서 URL로 다운로드
+      setCoverImage(null);
+    }
+
+    // 검색 결과 닫기
+    setShowNaverResults(false);
+    setSuccessMessage('네이버 검색 결과로 정보가 채워졌습니다. 저장하면 표지 이미지가 자동으로 다운로드됩니다.');
+    setTimeout(() => setSuccessMessage(''), 5000);
   };
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,6 +231,9 @@ export default function AdminBooksPage() {
 
       if (coverImage) {
         formData.append('coverImage', coverImage);
+      } else if (coverPreview && coverPreview.startsWith('http')) {
+        // 네이버 검색 결과 이미지 URL
+        formData.append('coverImageUrl', coverPreview);
       }
 
       const res = await fetch('/api/admin/update-book', {
@@ -212,6 +294,17 @@ export default function AdminBooksPage() {
           />
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setShowOnlyReview(!showOnlyReview)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+              showOnlyReview
+                ? 'bg-yellow-500 text-white border border-yellow-600'
+                : 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <span className="text-lg">{showOnlyReview ? '☑' : '☐'}</span>
+            <span>🚨 검토 필요만 보기</span>
+          </button>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'title')}
@@ -270,7 +363,7 @@ export default function AdminBooksPage() {
                       <div className="flex justify-center">
                         {book.cover ? (
                           <Image
-                            src={`/api/covers/${book.cover}`}
+                            src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
                             alt={book.title}
                             width={40}
                             height={60}
@@ -284,11 +377,18 @@ export default function AdminBooksPage() {
                       </div>
                     </td>
                     <td className="px-3 py-3 max-w-xs xl:max-w-md">
-                      <div
-                        className="text-sm font-medium text-gray-900 truncate"
-                        title={book.title}
-                      >
-                        {book.title}
+                      <div className="flex items-center gap-1">
+                        {book.needsReview && (
+                          <span className="flex-shrink-0" title="검토 필요">
+                            🚨
+                          </span>
+                        )}
+                        <div
+                          className="text-sm font-medium text-gray-900 truncate flex-1 min-w-0"
+                          title={book.title}
+                        >
+                          {book.title}
+                        </div>
                       </div>
                     </td>
                     <td className="px-3 py-3 max-w-[120px] sm:max-w-[160px] lg:max-w-[200px]">
@@ -373,10 +473,91 @@ export default function AdminBooksPage() {
                 </button>
               </div>
 
+              {/* Naver Search Button */}
+              <div className="mb-6 pb-6 border-b border-gray-200">
+                <button
+                  onClick={handleNaverSearch}
+                  disabled={naverSearching || !editForm.title}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <span>{naverSearching ? '검색 중...' : '네이버에서 자동으로 찾기'}</span>
+                </button>
+                {!editForm.title && (
+                  <p className="text-xs text-gray-900 mt-2 text-center">제목을 먼저 입력해주세요</p>
+                )}
+              </div>
+
+              {/* Naver Search Results */}
+              {showNaverResults && (
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-lg font-bold text-gray-900">네이버 검색 결과</h4>
+                    <button
+                      onClick={() => setShowNaverResults(false)}
+                      className="text-gray-900 hover:text-gray-900 font-medium text-sm"
+                    >
+                      닫기
+                    </button>
+                  </div>
+
+                  {naverSearching ? (
+                    <div className="text-center py-8">
+                      <div className="text-gray-900 font-medium">검색 중...</div>
+                    </div>
+                  ) : naverResults.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-gray-900 font-medium">검색 결과가 없습니다</div>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                      {naverResults.map((result, index) => (
+                        <div
+                          key={index}
+                          className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-500 transition-colors"
+                        >
+                          <div className="flex gap-4">
+                            {result.imageUrl && (
+                              <img
+                                src={result.imageUrl}
+                                alt={result.title}
+                                className="w-16 h-24 object-cover rounded shadow-sm"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h5 className="font-bold text-gray-900 mb-1">{result.title}</h5>
+                              <p className="text-sm text-gray-900 mb-1">
+                                <span className="font-semibold">저자:</span> {result.author || '-'}
+                              </p>
+                              <p className="text-sm text-gray-900 mb-1">
+                                <span className="font-semibold">출판:</span> {result.publisher || '-'} | {result.pubdate || '-'}
+                              </p>
+                              {result.description && (
+                                <p className="text-xs text-gray-900 mt-2 line-clamp-2">
+                                  {result.description}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => selectNaverResult(result)}
+                              className="self-start bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                            >
+                              선택
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-4">
                 {/* Cover Image */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">표지 이미지</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">표지 이미지</label>
                   <div className="flex items-center gap-4">
                     {coverPreview && (
                       <Image
@@ -392,54 +573,54 @@ export default function AdminBooksPage() {
                         type="file"
                         accept="image/jpeg,image/jpg,image/png,image/webp"
                         onChange={handleCoverChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-semibold file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-semibold hover:file:bg-blue-100"
                       />
-                      <p className="text-xs text-gray-700 mt-1">JPG, PNG, WEBP (최대 5MB)</p>
+                      <p className="text-xs text-gray-900 mt-1 font-medium">JPG, PNG, WEBP (최대 5MB)</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">제목</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">제목</label>
                   <input
                     type="text"
                     value={editForm.title}
                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                   />
                 </div>
 
                 {/* Author */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">저자</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">저자</label>
                   <input
                     type="text"
                     value={editForm.author}
                     onChange={(e) => setEditForm({ ...editForm, author: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                   />
                 </div>
 
                 {/* Year */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">출판년도</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">출판년도</label>
                   <input
                     type="text"
                     value={editForm.year}
                     onChange={(e) => setEditForm({ ...editForm, year: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">설명</label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">설명</label>
                   <textarea
                     value={editForm.description}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-gray-900 font-medium"
                   />
                 </div>
               </div>
@@ -449,7 +630,7 @@ export default function AdminBooksPage() {
                 <button
                   onClick={closeEditModal}
                   disabled={saving}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
                 >
                   취소
                 </button>

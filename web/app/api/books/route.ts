@@ -41,9 +41,11 @@ export async function GET() {
         size: stats.size,
         addedDate: stats.birthtime,
         cover: metadata.cover || null,
+        coverUpdated: metadata.cover_updated || null,
         description: metadata.description || null,
         author: metadata.author || null,
         year: metadata.year || null,
+        needsReview: metadata.needs_review || false,
       };
     });
 

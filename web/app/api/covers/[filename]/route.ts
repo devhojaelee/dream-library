@@ -32,11 +32,18 @@ export async function GET(
 
     const contentType = contentTypes[ext] || 'image/jpeg';
 
+    // 파일 수정 시간을 ETag로 사용
+    const stats = fs.statSync(filepath);
+    const etag = `"${stats.mtime.getTime()}"`;
+
     // 이미지 응답 반환
     return new NextResponse(fileBuffer, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': process.env.NODE_ENV === 'production'
+          ? 'public, max-age=3600, must-revalidate'
+          : 'no-cache, no-store, must-revalidate',
+        'ETag': etag,
       },
     });
   } catch (error) {

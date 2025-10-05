@@ -1,0 +1,131 @@
+{
+  "project": "Dream Library - 인증 시스템 개선",
+  "description": "Guest 로그인 제거, 이메일 인증, 관리자 승인 프로세스 구현",
+  "tasks": [
+    {
+      "id": "parent-1",
+      "type": "parent",
+      "title": "인증 시스템 강화",
+      "description": "Guest 로그인 제거 및 다운로드 인증 필수화로 보안 강화",
+      "labels": ["security", "backend", "frontend"],
+      "priority": "high",
+      "subtasks": ["sub-1-1", "sub-1-2"]
+    },
+    {
+      "id": "sub-1-1",
+      "type": "sub",
+      "parent": "parent-1",
+      "title": "Guest 로그인 제거",
+      "description": "LoginForm과 API route에서 guest 인증 관련 코드 완전 제거",
+      "labels": ["frontend", "backend"],
+      "priority": "high",
+      "checklist": [
+        "LoginForm에서 guest 로그인 버튼 제거",
+        "API route에서 guest 인증 로직 제거",
+        "기존 guest 세션 처리 로직 정리",
+        "테스트 및 검증"
+      ],
+      "files": [
+        "web/components/LoginForm.tsx",
+        "web/app/api/auth/login/route.ts"
+      ],
+      "branch": "features/remove-guest-login"
+    },
+    {
+      "id": "sub-1-2",
+      "type": "sub",
+      "parent": "parent-1",
+      "title": "다운로드 인증 필수화",
+      "description": "로그인한 사용자만 책을 다운로드할 수 있도록 API 및 UI 수정",
+      "labels": ["backend", "frontend", "security"],
+      "priority": "high",
+      "checklist": [
+        "/api/download에 인증 미들웨어 추가",
+        "미인증 사용자 접근 시 401 에러 처리",
+        "프론트엔드에서 로그인 유도 UI 추가",
+        "다운로드 추적 로직 인증 사용자 전용으로 수정",
+        "E-ink UI에도 동일하게 적용"
+      ],
+      "files": [
+        "web/app/api/download/route.ts",
+        "web/components/BookList.tsx",
+        "web/app/eink/page.tsx"
+      ],
+      "branch": "features/require-auth-download"
+    },
+    {
+      "id": "parent-2",
+      "type": "parent",
+      "title": "회원가입 승인 프로세스 구현",
+      "description": "이메일 인증 및 관리자 승인을 통한 회원가입 프로세스 강화",
+      "labels": ["backend", "frontend", "security"],
+      "priority": "medium",
+      "subtasks": ["sub-2-1", "sub-2-2"]
+    },
+    {
+      "id": "sub-2-1",
+      "type": "sub",
+      "parent": "parent-2",
+      "title": "이메일 인증 시스템 구현",
+      "description": "회원가입 시 이메일 인증을 통한 본인 확인 프로세스 추가",
+      "labels": ["backend", "frontend"],
+      "priority": "medium",
+      "checklist": [
+        "이메일 전송 서비스 설정 (nodemailer 또는 대안)",
+        "인증 토큰 생성 및 저장 로직 구현",
+        "/api/auth/verify-email 엔드포인트 생성",
+        "회원가입 시 이메일 발송 통합",
+        "인증 완료 페이지 구현",
+        "users.json에 emailVerified 필드 추가",
+        "미인증 사용자 로그인 차단"
+      ],
+      "files": [
+        "web/app/api/auth/signup/route.ts",
+        "web/app/api/auth/verify-email/route.ts",
+        "web/lib/email.ts",
+        "web/app/verify-email/page.tsx"
+      ],
+      "branch": "features/email-verification",
+      "notes": "환경변수 필요: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD"
+    },
+    {
+      "id": "sub-2-2",
+      "type": "sub",
+      "parent": "parent-2",
+      "title": "관리자 승인 시스템 구현",
+      "description": "관리자가 신규 가입 사용자를 검토하고 승인/거부할 수 있는 시스템 구축",
+      "labels": ["backend", "frontend"],
+      "priority": "medium",
+      "checklist": [
+        "users.json에 approved, approvedBy, approvedAt 필드 추가",
+        "관리자 역할 시스템 구현 (role: admin)",
+        "관리자 대시보드 페이지 생성 (/admin/users)",
+        "/api/admin/users API 엔드포인트 (목록, 승인, 거부)",
+        "로그인 시 승인 상태 검증 로직 추가",
+        "미승인 사용자 대기 페이지 구현",
+        "승인/거부 알림 이메일 발송 (선택사항)"
+      ],
+      "files": [
+        "web/app/api/admin/users/route.ts",
+        "web/app/admin/users/page.tsx",
+        "web/middleware.ts",
+        "web/app/api/auth/login/route.ts"
+      ],
+      "branch": "features/admin-approval",
+      "notes": "첫 사용자를 관리자로 설정하거나, users.json에서 수동으로 role: 'admin' 추가 필요"
+    }
+  ],
+  "workflow": {
+    "pattern": "parent-sub",
+    "parallelization": {
+      "parent-1": "sub-1-1과 sub-1-2는 병렬 작업 가능 (다른 파일 수정)",
+      "parent-2": "sub-2-1과 sub-2-2는 병렬 작업 가능 (독립적 기능)"
+    },
+    "sequence": "parent-1 완료 후 parent-2 시작 권장"
+  },
+  "commit_convention": {
+    "pattern": "/features/{feature-name}",
+    "message": "해당 기능을 직관적으로 설명하는 코멘트",
+    "example": "git commit -m 'Remove guest login functionality'"
+  }
+}

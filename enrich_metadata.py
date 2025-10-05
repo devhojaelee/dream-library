@@ -2,7 +2,7 @@
 """
 책 메타데이터 보완 스크립트
 
-Z-Library에서 가져오지 못한 책 표지와 설명을 Google Books API를 통해 보완합니다.
+Z-Library에서 가져오지 못한 책 표지와 설명을 Naver Books API를 통해 보완합니다.
 """
 
 import os
@@ -16,16 +16,22 @@ from io import BytesIO
 from PIL import Image
 from difflib import SequenceMatcher
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 환경변수 로드
+load_dotenv('web/.env')
+NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
+NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 
 # 경로 설정
 BOOKS_DIR = Path("books")
 METADATA_DIR = BOOKS_DIR / "metadata"
 COVERS_DIR = BOOKS_DIR / "covers"
 
-# Google Books API 설정
-GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
+# Naver Books API 설정
+NAVER_BOOKS_API = "https://openapi.naver.com/v1/search/book.json"
 
-# 해상도 임계값 (이보다 작으면 서점에서 더 좋은 이미지 검색)
+# 해상도 임계값 (이보다 작으면 스킵)
 MIN_COVER_WIDTH = 200
 
 # 제목 유사도 임계값 (이보다 낮으면 다른 책으로 판단)
@@ -37,8 +43,12 @@ class MetadataEnricher:
         self.failed_count = 0
         self.skipped_count = 0
 
+        # API 키 검증
+        if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+            raise ValueError("Naver API 키가 설정되지 않았습니다. web/.env 파일에 NAVER_CLIENT_ID와 NAVER_CLIENT_SECRET를 설정해주세요.")
+
     def clean_title(self, title: str) -> str:
-        """제목 정제: 괄호, 대괄호 내용 제거 (숫자는 유지)"""
+        """제목 정제: 괄호, 대괄호 내용 제거"""
         # (개정판) 제거
         cleaned = re.sub(r'\([^)]*\)', '', title)
 
@@ -50,25 +60,62 @@ class MetadataEnricher:
 
         return cleaned.strip()
 
+    def clean_html_tags(self, text: str) -> str:
+        """HTML 태그 및 엔티티 제거"""
+        if not text:
+            return ""
+
+        # HTML 태그 제거
+        cleaned = re.sub(r'<[^>]*>', '', text)
+
+        # HTML 엔티티 변환
+        cleaned = cleaned.replace('&lt;', '<')
+        cleaned = cleaned.replace('&gt;', '>')
+        cleaned = cleaned.replace('&amp;', '&')
+        cleaned = cleaned.replace('&quot;', '"')
+        cleaned = cleaned.replace('&#39;', "'")
+
+        # 연속된 줄바꿈을 2개로 정규화 (문단 구분)
+        cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+
+        return cleaned.strip()
+
+    def clean_title_for_comparison(self, title: str) -> str:
+        """비교용 제목 정제: 괄호/대괄호 이전 부분만 추출"""
+        # 괄호 이전까지만 추출
+        match = re.match(r'^([^\(\[]+)', title)
+        if match:
+            cleaned = match.group(1).strip()
+        else:
+            cleaned = title
+
+        # 소문자 변환 및 공백 정규화
+        cleaned = re.sub(r'\s+', ' ', cleaned.lower().strip())
+        return cleaned
+
     def calculate_title_similarity(self, title1: str, title2: str) -> float:
         """두 제목의 유사도 계산 (0.0 ~ 1.0)"""
-        # 소문자 변환 및 공백 정규화
-        t1 = re.sub(r'\s+', ' ', title1.lower().strip())
-        t2 = re.sub(r'\s+', ' ', title2.lower().strip())
+        # 괄호 이전 부분만 비교
+        t1 = self.clean_title_for_comparison(title1)
+        t2 = self.clean_title_for_comparison(title2)
 
         # SequenceMatcher를 사용한 유사도 계산
         return SequenceMatcher(None, t1, t2).ratio()
 
-    def search_google_books_single(self, query: str, original_title: str) -> Optional[Dict]:
-        """Google Books API로 단일 쿼리 검색 (제목 유사도 검증 포함)"""
+    def search_naver_books_api_single(self, query: str, original_title: str) -> Optional[Dict]:
+        """Naver Books API로 단일 쿼리 검색 (제목 유사도 검증 포함)"""
         try:
-            params = {
-                'q': query,
-                'maxResults': 5,
-                'langRestrict': 'ko'  # 한국어 우선
+            headers = {
+                'X-Naver-Client-Id': NAVER_CLIENT_ID,
+                'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
             }
 
-            response = requests.get(GOOGLE_BOOKS_API, params=params, timeout=10)
+            params = {
+                'query': query,
+                'display': 10,  # 최대 10개 결과
+            }
+
+            response = requests.get(NAVER_BOOKS_API, headers=headers, params=params, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
@@ -78,11 +125,13 @@ class MetadataEnricher:
                     best_score = 0
 
                     for item in data['items']:
-                        volume_info = item.get('volumeInfo', {})
+                        # HTML 태그 제거
+                        clean_title = self.clean_html_tags(item.get('title', ''))
+                        clean_description = self.clean_html_tags(item.get('description', ''))
+                        clean_author = item.get('author', '').replace('^', ', ')
 
                         # 제목 유사도 검증
-                        result_title = volume_info.get('title', '')
-                        similarity = self.calculate_title_similarity(original_title, result_title)
+                        similarity = self.calculate_title_similarity(original_title, clean_title)
 
                         # 유사도가 너무 낮으면 스킵
                         if similarity < MIN_TITLE_SIMILARITY:
@@ -90,13 +139,13 @@ class MetadataEnricher:
 
                         # 완전성 점수 계산
                         completeness_score = 0
-                        if volume_info.get('description'):
+                        if clean_description:
                             completeness_score += 2
-                        if volume_info.get('imageLinks'):
+                        if item.get('image'):
                             completeness_score += 2
-                        if volume_info.get('authors'):
+                        if clean_author:
                             completeness_score += 1
-                        if volume_info.get('publishedDate'):
+                        if item.get('pubdate'):
                             completeness_score += 1
 
                         # 종합 점수 = 완전성 + 유사도 보너스
@@ -104,17 +153,26 @@ class MetadataEnricher:
 
                         if total_score > best_score:
                             best_score = total_score
-                            best_match = item
+                            # 결과 정제해서 저장
+                            best_match = {
+                                'title': clean_title,
+                                'author': clean_author,
+                                'publisher': item.get('publisher', ''),
+                                'pubdate': item.get('pubdate', ''),
+                                'description': clean_description,
+                                'image': item.get('image', ''),
+                                'similarity': similarity
+                            }
 
                     return best_match
 
             return None
 
         except Exception as e:
-            print(f"  ⚠️  Google Books API 오류: {e}")
+            print(f"  ⚠️  Naver Books API 오류: {e}")
             return None
 
-    def search_google_books(self, title: str, author: str = None) -> Optional[Dict]:
+    def search_naver_books_api(self, title: str, author: str = None) -> Optional[Dict]:
         """점진적 검색 전략으로 책 정보 검색"""
         print(f"  🔍 검색 전략 시작...")
 
@@ -144,12 +202,11 @@ class MetadataEnricher:
         # 순차적으로 시도
         for attempt_name, query in search_attempts:
             print(f"  📖 [{attempt_name}] '{query}' 검색 중...")
-            result = self.search_google_books_single(query, title)
+            result = self.search_naver_books_api_single(query, title)
 
             if result:
-                volume_info = result.get('volumeInfo', {})
-                result_title = volume_info.get('title', '알 수 없음')
-                similarity = self.calculate_title_similarity(title, result_title)
+                result_title = result.get('title', '알 수 없음')
+                similarity = result.get('similarity', 0)
                 print(f"  ✅ 발견! '{result_title}' (유사도: {similarity:.2f})")
                 return result
             else:
@@ -158,35 +215,19 @@ class MetadataEnricher:
         return None
 
     def download_cover_image(self, image_url: str, filename: str) -> Optional[str]:
-        """표지 이미지 다운로드 (가장 큰 유효한 이미지 선택, 올바른 확장자 사용)"""
+        """표지 이미지 다운로드"""
         try:
-            # HTTP를 HTTPS로 변경 (Google Books는 HTTPS 지원)
+            # HTTP를 HTTPS로 변경
             if image_url.startswith('http://'):
                 image_url = image_url.replace('http://', 'https://')
 
-            # 모든 zoom 레벨 시도하고 가장 큰 이미지 선택
-            best_image = None
-            best_size = 0
-            best_zoom = None
+            response = requests.get(image_url, timeout=10)
 
-            for zoom_level in [1, 2, 3]:
-                try_url = image_url.replace('zoom=1', f'zoom={zoom_level}')
-
-                response = requests.get(try_url, timeout=10)
-
-                if response.status_code == 200 and len(response.content) > 1000:
-                    # 1KB 이상의 이미지만 유효하다고 판단
-                    size = len(response.content)
-                    if size > best_size:
-                        best_size = size
-                        best_image = response.content
-                        best_zoom = zoom_level
-
-            if best_image:
+            if response.status_code == 200 and len(response.content) > 1000:
                 # 이미지 형식 감지 (magic number 확인)
-                if best_image[:8].startswith(b'\x89PNG'):
+                if response.content[:8].startswith(b'\x89PNG'):
                     ext = '.png'
-                elif best_image[:3].startswith(b'\xff\xd8\xff'):
+                elif response.content[:3].startswith(b'\xff\xd8\xff'):
                     ext = '.jpg'
                 else:
                     ext = '.jpg'  # 기본값
@@ -195,9 +236,10 @@ class MetadataEnricher:
                 cover_path = COVERS_DIR / cover_filename
 
                 with open(cover_path, 'wb') as f:
-                    f.write(best_image)
+                    f.write(response.content)
 
-                print(f"  📐 이미지 크기: {best_size // 1024}KB (zoom={best_zoom}, {ext[1:].upper()})")
+                size_kb = len(response.content) // 1024
+                print(f"  📐 이미지 크기: {size_kb}KB ({ext[1:].upper()})")
                 return cover_filename
             else:
                 print(f"  ⚠️  유효한 이미지를 찾을 수 없음")
@@ -206,108 +248,6 @@ class MetadataEnricher:
         except Exception as e:
             print(f"  ⚠️  표지 다운로드 오류: {e}")
             return None
-
-    def get_image_dimensions(self, image_data: bytes) -> Tuple[int, int]:
-        """이미지 데이터에서 가로x세로 크기 추출"""
-        try:
-            img = Image.open(BytesIO(image_data))
-            return img.size  # (width, height)
-        except Exception as e:
-            print(f"  ⚠️  이미지 크기 확인 오류: {e}")
-            return (0, 0)
-
-    def search_naver_books(self, title: str, author: str = None) -> Optional[str]:
-        """네이버 책 검색에서 표지 이미지 URL 검색"""
-        try:
-            # 네이버 책 검색 (크롤링)
-            from bs4 import BeautifulSoup
-
-            search_query = f"{title} {author}" if author else title
-            response = requests.get(
-                'https://search.naver.com/search.naver',
-                params={'where': 'book', 'sm': 'tab_jum', 'query': search_query},
-                timeout=10,
-                headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
-            )
-
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                # 첫 번째 책 표지 이미지 찾기 (업데이트된 선택자)
-                img = soup.select_one('img.thumb')
-                if img:
-                    img_url = img.get('src') or img.get('data-src')
-                    if img_url and img_url.startswith('http'):
-                        # 고해상도 버전으로 변경 (type=w216 → type=w600)
-                        if 'type=w216' in img_url:
-                            img_url = img_url.replace('type=w216', 'type=w600')
-                        return img_url
-
-            return None
-        except Exception as e:
-            print(f"  ⚠️  네이버 검색 오류: {e}")
-            return None
-
-
-    def upgrade_low_resolution_cover(self, title: str, author: str, current_cover_path: Path) -> bool:
-        """해상도가 낮은 표지를 한국 서점에서 더 좋은 이미지로 교체"""
-        try:
-            # 현재 이미지 크기 확인
-            with open(current_cover_path, 'rb') as f:
-                current_data = f.read()
-
-            width, height = self.get_image_dimensions(current_data)
-
-            if width >= MIN_COVER_WIDTH:
-                return False  # 해상도가 충분함
-
-            print(f"  🔍 해상도가 낮음 ({width}x{height}), 더 좋은 이미지 검색 중...")
-
-            # 네이버 책 검색에서 고해상도 이미지 찾기
-            bookstore_sources = [
-                ('네이버', self.search_naver_books),
-            ]
-
-            for store_name, search_func in bookstore_sources:
-                img_url = search_func(title, author)
-
-                if img_url:
-                    # URL 스킴 수정 (//로 시작하는 경우 https: 추가)
-                    if img_url.startswith('//'):
-                        img_url = 'https:' + img_url
-
-                    # 이미지 다운로드
-                    img_response = requests.get(img_url, timeout=10)
-
-                    if img_response.status_code == 200 and len(img_response.content) > 1000:
-                        new_width, new_height = self.get_image_dimensions(img_response.content)
-
-                        # 더 큰 이미지인지 확인
-                        if new_width > width:
-                            # 파일 형식 감지
-                            if img_response.content[:8].startswith(b'\x89PNG'):
-                                ext = '.png'
-                            elif img_response.content[:3].startswith(b'\xff\xd8\xff'):
-                                ext = '.jpg'
-                            else:
-                                ext = '.jpg'
-
-                            # 기존 파일 삭제
-                            current_cover_path.unlink()
-
-                            # 새 파일 저장
-                            new_path = current_cover_path.parent / f"{title}{ext}"
-                            with open(new_path, 'wb') as f:
-                                f.write(img_response.content)
-
-                            print(f"  ✨ {store_name}에서 고해상도 이미지 다운로드: {new_width}x{new_height} ({len(img_response.content) // 1024}KB)")
-                            return True
-
-            print(f"  ⚠️  더 좋은 이미지를 찾지 못함")
-            return False
-
-        except Exception as e:
-            print(f"  ⚠️  이미지 업그레이드 오류: {e}")
-            return False
 
     def enrich_metadata(self, epub_filename: str) -> bool:
         """단일 책의 메타데이터 보완"""
@@ -348,8 +288,8 @@ class MetadataEnricher:
         # 저자 정보 추출 (있으면 검색에 활용)
         author = metadata.get('author')
 
-        # Google Books에서 검색
-        book_info = self.search_google_books(title, author)
+        # Naver Books API에서 검색
+        book_info = self.search_naver_books_api(title, author)
 
         if not book_info:
             print(f"  ❌ 검색 결과 없음")
@@ -361,53 +301,37 @@ class MetadataEnricher:
             self.failed_count += 1
             return False
 
-        volume_info = book_info.get('volumeInfo', {})
         updated = False
 
         # 설명 보완
-        if not has_description and 'description' in volume_info:
-            description = volume_info['description']
+        if not has_description and book_info.get('description'):
+            description = book_info['description']
             metadata['description'] = description
             print(f"  ✅ 설명 추가: {description[:50]}...")
             updated = True
 
         # 표지 보완
-        if not has_cover and 'imageLinks' in volume_info:
-            image_links = volume_info['imageLinks']
-            # thumbnail 또는 smallThumbnail 사용
-            image_url = image_links.get('thumbnail') or image_links.get('smallThumbnail')
+        if not has_cover and book_info.get('image'):
+            image_url = book_info['image']
 
-            if image_url:
-                cover_filename = self.download_cover_image(image_url, epub_filename)
+            cover_filename = self.download_cover_image(image_url, epub_filename)
 
-                if cover_filename:
-                    metadata['cover'] = cover_filename
-                    print(f"  ✅ 표지 다운로드: {cover_filename}")
-                    updated = True
-
-                    # 해상도 체크 및 업그레이드
-                    cover_path = COVERS_DIR / cover_filename
-                    author = metadata.get('author', '')
-                    if self.upgrade_low_resolution_cover(title, author, cover_path):
-                        # 파일명이 변경되었을 수 있으므로 메타데이터 업데이트
-                        new_cover_filename = None
-                        for ext in ['.jpg', '.png']:
-                            possible_path = COVERS_DIR / f"{title}{ext}"
-                            if possible_path.exists():
-                                new_cover_filename = f"{title}{ext}"
-                                break
-                        if new_cover_filename and new_cover_filename != cover_filename:
-                            metadata['cover'] = new_cover_filename
+            if cover_filename:
+                metadata['cover'] = cover_filename
+                # 타임스탬프 추가 (캐시 무효화용)
+                metadata['cover_updated'] = str(int(time.time() * 1000))
+                print(f"  ✅ 표지 다운로드: {cover_filename}")
+                updated = True
 
         # 기타 메타데이터 보완
-        if 'authors' in volume_info and not metadata.get('author'):
-            metadata['author'] = ', '.join(volume_info['authors'])
+        if book_info.get('author') and not metadata.get('author'):
+            metadata['author'] = book_info['author']
             print(f"  ✅ 저자 추가: {metadata['author']}")
             updated = True
 
-        if 'publishedDate' in volume_info and not metadata.get('year'):
-            # YYYY-MM-DD 형식에서 연도만 추출
-            year = volume_info['publishedDate'].split('-')[0]
+        if book_info.get('pubdate') and not metadata.get('year'):
+            # YYYYMMDD 형식에서 연도만 추출
+            year = book_info['pubdate'][:4] if len(book_info['pubdate']) >= 4 else book_info['pubdate']
             metadata['year'] = year
             print(f"  ✅ 출판년도 추가: {year}")
             updated = True

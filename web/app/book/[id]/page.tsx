@@ -11,9 +11,11 @@ interface Book {
   size: number;
   addedDate: string;
   cover: string | null;
+  coverUpdated?: string | null;
   description: string | null;
   author: string | null;
   year: string | null;
+  needsReview?: boolean;
 }
 
 interface User {
@@ -29,6 +31,7 @@ export default function BookDetail() {
   const [book, setBook] = useState<Book | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     // Load user
@@ -121,6 +124,32 @@ export default function BookDetail() {
     }
   };
 
+  const toggleReportStatus = async () => {
+    if (!book || !user) return;
+
+    try {
+      setReporting(true);
+      const newStatus = !book.needsReview;
+
+      const res = await fetch('/api/admin/mark-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: book.filename, needsReview: newStatus }),
+      });
+
+      if (res.ok) {
+        setBook({
+          ...book,
+          needsReview: newStatus
+        });
+      }
+    } catch (error) {
+      console.error('Report error:', error);
+    } finally {
+      setReporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -164,7 +193,7 @@ export default function BookDetail() {
             <div className="md:w-2/5 bg-gray-50 flex items-center justify-center p-8 relative">
               {book.cover ? (
                 <img
-                  src={`/api/covers/${book.cover}`}
+                  src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
                   alt={book.title}
                   className="w-full h-auto object-contain max-h-[600px] rounded-lg shadow-md"
                 />
@@ -235,6 +264,35 @@ export default function BookDetail() {
                   )}
                 </div>
               </div>
+
+              {/* Report Section */}
+              {user && (
+                <div className="mb-6">
+                  {book.needsReview && (
+                    <div className="mb-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-yellow-800">
+                          이 책의 정보에 오류가 있다고 신고되었습니다. 관리자가 확인 중입니다.
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={toggleReportStatus}
+                    disabled={reporting}
+                    className={`w-full text-sm px-4 py-2.5 rounded-lg font-medium transition-colors ${
+                      book.needsReview
+                        ? 'bg-yellow-50 border border-yellow-300 text-yellow-700 hover:bg-yellow-100'
+                        : 'bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200'
+                    } ${reporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {reporting ? '처리 중...' : book.needsReview ? '검토 요청됨 (취소)' : '🚨 정보 오류 신고'}
+                  </button>
+                </div>
+              )}
 
               {/* Download Section */}
               {user && (

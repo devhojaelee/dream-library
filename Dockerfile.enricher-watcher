@@ -1,0 +1,17 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install dependencies
+RUN pip install --no-cache-dir \
+    requests \
+    beautifulsoup4 \
+    pillow \
+    watchdog
+
+# Copy scripts
+COPY enrich_metadata.py /app/
+COPY enricher_watcher.py /app/
+
+# Run watcher
+CMD ["python", "enricher_watcher.py"]

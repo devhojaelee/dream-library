@@ -12,6 +12,9 @@ export async function POST(request: NextRequest) {
     const year = formData.get('year') as string;
     const description = formData.get('description') as string;
     const coverFile = formData.get('coverImage') as File | null;
+    const coverImageUrl = formData.get('coverImageUrl') as string | null;
+
+    console.log('Update book request:', { filename, title, author, year, coverImageUrl });
 
     if (!filename) {
       return NextResponse.json({ error: 'Filename is required' }, { status: 400 });
@@ -74,8 +77,46 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(bytes);
       fs.writeFileSync(coverPath, buffer);
 
-      // Update metadata with cover filename
+      // Update metadata with cover filename and timestamp
       metadata.cover = coverFilename;
+      metadata.cover_updated = Date.now().toString();
+    } else if (coverImageUrl) {
+      // Handle cover image download from URL (네이버 검색 결과)
+      console.log('Downloading cover from URL:', coverImageUrl);
+      try {
+        const imgResponse = await fetch(coverImageUrl);
+        console.log('Image fetch response status:', imgResponse.status);
+
+        if (imgResponse.ok) {
+          const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
+          console.log('Image downloaded, size:', imgBuffer.length);
+
+          // Detect image type from content
+          let ext = 'jpg';
+          const contentType = imgResponse.headers.get('content-type');
+          if (contentType?.includes('png')) {
+            ext = 'png';
+          } else if (contentType?.includes('webp')) {
+            ext = 'webp';
+          }
+
+          const coverFilename = `${baseFilename}.${ext}`;
+          const coverPath = path.join(coversDir, coverFilename);
+
+          // Save image file
+          fs.writeFileSync(coverPath, imgBuffer);
+          console.log('Cover saved successfully:', coverFilename);
+
+          // Update metadata with cover filename and timestamp
+          metadata.cover = coverFilename;
+          metadata.cover_updated = Date.now().toString();
+        } else {
+          console.error('Image fetch failed with status:', imgResponse.status);
+        }
+      } catch (err) {
+        console.error('Failed to download cover image from URL:', err);
+        // Don't fail the entire request if image download fails
+      }
     }
 
     // Save metadata

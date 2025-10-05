@@ -11,9 +11,11 @@ interface Book {
   size: number;
   addedDate: string;
   cover: string | null;
+  coverUpdated?: string | null;
   description: string | null;
   author: string | null;
   year: string | null;
+  needsReview: boolean;
 }
 
 interface User {
@@ -29,6 +31,7 @@ export default function EinkBookDetail() {
   const [book, setBook] = useState<Book | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     // Load user
@@ -110,6 +113,32 @@ export default function EinkBookDetail() {
     } catch (error) {
       console.error('Toggle error:', error);
       alert('상태 업데이트에 실패했습니다');
+    }
+  };
+
+  const toggleReportStatus = async () => {
+    if (!book || !user) return;
+
+    try {
+      setReporting(true);
+      const newStatus = !book.needsReview;
+
+      const res = await fetch('/api/admin/mark-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: book.filename,
+          needsReview: newStatus,
+        }),
+      });
+
+      if (res.ok) {
+        setBook({ ...book, needsReview: newStatus });
+      }
+    } catch (error) {
+      console.error('Report error:', error);
+    } finally {
+      setReporting(false);
     }
   };
 
@@ -237,7 +266,7 @@ export default function EinkBookDetail() {
             }}>
               {book.cover ? (
                 <img
-                  src={`/api/covers/${book.cover}`}
+                  src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
                   alt={book.title}
                   style={{
                     width: '100%',
@@ -466,6 +495,61 @@ export default function EinkBookDetail() {
                       다운로드 완료 표시는 읽은 책을 관리하는 데 도움이 됩니다
                     </p>
                   </div>
+                </div>
+              )}
+
+              {/* Report Section */}
+              {user && (
+                <div style={{
+                  background: '#f5f5f5',
+                  border: '1px solid #d0d0d0',
+                  borderRadius: '8px',
+                  padding: '24px',
+                  marginBottom: '24px'
+                }}>
+                  {book.needsReview && (
+                    <div style={{
+                      marginBottom: '20px',
+                      padding: '20px',
+                      border: '1px solid #cccccc',
+                      borderRadius: '8px',
+                      background: '#f0f0f0'
+                    }}>
+                      <div style={{
+                        fontSize: '16px',
+                        fontWeight: 600,
+                        color: '#000000',
+                        lineHeight: 1.5
+                      }}>
+                        이 책의 정보에 오류가 있다고 신고되었습니다. 관리자가 확인 중입니다.
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={toggleReportStatus}
+                    disabled={reporting}
+                    style={{
+                      width: '100%',
+                      background: book.needsReview ? '#e8e8e8' : '#ffffff',
+                      color: '#000000',
+                      border: '1px solid #cccccc',
+                      borderRadius: '8px',
+                      padding: '16px 24px',
+                      fontSize: '18px',
+                      fontWeight: 600,
+                      minHeight: '56px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      cursor: reporting ? 'not-allowed' : 'pointer',
+                      opacity: reporting ? 0.6 : 1
+                    }}
+                  >
+                    <span>
+                      {reporting ? '처리 중...' : book.needsReview ? '검토 요청됨 (취소)' : '🚨 정보 오류 신고'}
+                    </span>
+                  </button>
                 </div>
               )}
 

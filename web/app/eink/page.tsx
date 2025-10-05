@@ -12,6 +12,7 @@ interface Book {
   size: number;
   addedDate: string;
   cover: string | null;
+  coverUpdated?: string | null;
   description: string | null;
   author: string | null;
   year: string | null;
@@ -576,7 +577,7 @@ export default function EinkHome() {
                     }}>
                       {book.cover ? (
                         <img
-                          src={`/api/covers/${book.cover}`}
+                          src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
                           alt={book.title}
                           style={{
                             width: '100%',

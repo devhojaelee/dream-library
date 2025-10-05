@@ -12,6 +12,7 @@ interface Book {
   size: number;
   addedDate: string;
   cover: string | null;
+  coverUpdated?: string | null;
   description: string | null;
   author: string | null;
   year: string | null;
@@ -507,7 +508,7 @@ export default function Home() {
                     <div className="aspect-[2/3] bg-gradient-to-br from-purple-100 via-pink-50 to-blue-50 flex items-center justify-center relative overflow-hidden">
                       {book.cover ? (
                         <img
-                          src={`/api/covers/${book.cover}`}
+                          src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
                           alt={book.title}
                           className="w-full h-full object-cover"
                         />
