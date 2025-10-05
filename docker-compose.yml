@@ -70,6 +70,8 @@ services:
       - ./books:/app/books
     environment:
       - PYTHONUNBUFFERED=1
+      - NAVER_CLIENT_ID=u_TxS07V8FiDkvir_yp5
+      - NAVER_CLIENT_SECRET=LqA8OJxE26
     restart: unless-stopped
     networks:
       - dream-library

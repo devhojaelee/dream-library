@@ -7,7 +7,8 @@ RUN pip install --no-cache-dir \
     requests \
     beautifulsoup4 \
     pillow \
-    watchdog
+    watchdog \
+    python-dotenv
 
 # Copy scripts
 COPY enrich_metadata.py /app/

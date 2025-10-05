@@ -18,8 +18,13 @@ from difflib import SequenceMatcher
 from datetime import datetime
 from dotenv import load_dotenv
 
-# 환경변수 로드
-load_dotenv('web/.env')
+# 환경변수 로드 (파일이 있으면 로드, 없으면 환경 변수에서 읽음)
+env_path = 'web/.env'
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv()  # 기본 .env 파일 또는 환경 변수
+
 NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID')
 NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET')
 

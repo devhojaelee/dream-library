@@ -34,15 +34,13 @@ class DownloadStatusHandler(FileSystemEventHandler):
             print("\n" + "="*70)
             print("⏳ Download limit detected!")
             print("="*70)
-            print("Waiting 5 minutes before running metadata enrichment...")
+            print("Waiting 10 seconds before running metadata enrichment...")
 
-            # Wait 5 minutes
-            wait_seconds = 300
-            for remaining in range(wait_seconds, 0, -30):
-                mins = remaining // 60
-                secs = remaining % 60
-                print(f"  ⏰ {mins:02d}:{secs:02d} remaining...")
-                time.sleep(30)
+            # Wait 10 seconds
+            wait_seconds = 10
+            for remaining in range(wait_seconds, 0, -2):
+                print(f"  ⏰ {remaining} seconds remaining...")
+                time.sleep(2)
 
             print("\n" + "="*70)
             print("🎨 Starting Metadata Enrichment")
@@ -81,7 +79,7 @@ def main():
     print("="*70)
     print(f"👀 Watching: {watch_dir}")
     print("📝 Trigger: download_status.json creation/modification")
-    print("⏳ Delay: 5 minutes")
+    print("⏳ Delay: 10 seconds")
     print("🎨 Action: Run enrich_metadata.py")
     print("="*70 + "\n")
 
