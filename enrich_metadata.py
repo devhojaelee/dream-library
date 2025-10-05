@@ -9,10 +9,12 @@ import os
 import json
 import requests
 import time
+import re
 from pathlib import Path
 from typing import Optional, Dict, Tuple
 from io import BytesIO
 from PIL import Image
+from difflib import SequenceMatcher
 
 # 경로 설정
 BOOKS_DIR = Path("books")
@@ -25,18 +27,39 @@ GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
 # 해상도 임계값 (이보다 작으면 서점에서 더 좋은 이미지 검색)
 MIN_COVER_WIDTH = 200
 
+# 제목 유사도 임계값 (이보다 낮으면 다른 책으로 판단)
+MIN_TITLE_SIMILARITY = 0.6
+
 class MetadataEnricher:
     def __init__(self):
         self.updated_count = 0
         self.failed_count = 0
         self.skipped_count = 0
 
-    def search_google_books(self, title: str) -> Optional[Dict]:
-        """Google Books API로 책 정보 검색 (여러 결과 중 가장 완전한 정보 선택)"""
+    def clean_title(self, title: str) -> str:
+        """제목 정제: 괄호, 대괄호 내용 제거 (숫자는 유지)"""
+        # (개정판), [휴고상 수상작] 등 제거
+        cleaned = re.sub(r'[\(\[].*?[\)\]]', '', title)
+
+        # 연속된 공백을 하나로
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+
+        return cleaned.strip()
+
+    def calculate_title_similarity(self, title1: str, title2: str) -> float:
+        """두 제목의 유사도 계산 (0.0 ~ 1.0)"""
+        # 소문자 변환 및 공백 정규화
+        t1 = re.sub(r'\s+', ' ', title1.lower().strip())
+        t2 = re.sub(r'\s+', ' ', title2.lower().strip())
+
+        # SequenceMatcher를 사용한 유사도 계산
+        return SequenceMatcher(None, t1, t2).ratio()
+
+    def search_google_books_single(self, query: str, original_title: str) -> Optional[Dict]:
+        """Google Books API로 단일 쿼리 검색 (제목 유사도 검증 포함)"""
         try:
-            # 제목으로 검색 (최대 5개 결과)
             params = {
-                'q': title,
+                'q': query,
                 'maxResults': 5,
                 'langRestrict': 'ko'  # 한국어 우선
             }
@@ -47,32 +70,36 @@ class MetadataEnricher:
                 data = response.json()
 
                 if 'items' in data and len(data['items']) > 0:
-                    # 여러 결과 중 가장 완전한 정보를 가진 책 선택
                     best_match = None
                     best_score = 0
 
                     for item in data['items']:
                         volume_info = item.get('volumeInfo', {})
-                        score = 0
 
-                        # 설명이 있으면 +2점
+                        # 제목 유사도 검증
+                        result_title = volume_info.get('title', '')
+                        similarity = self.calculate_title_similarity(original_title, result_title)
+
+                        # 유사도가 너무 낮으면 스킵
+                        if similarity < MIN_TITLE_SIMILARITY:
+                            continue
+
+                        # 완전성 점수 계산
+                        completeness_score = 0
                         if volume_info.get('description'):
-                            score += 2
-
-                        # 이미지가 있으면 +2점
+                            completeness_score += 2
                         if volume_info.get('imageLinks'):
-                            score += 2
-
-                        # 저자가 있으면 +1점
+                            completeness_score += 2
                         if volume_info.get('authors'):
-                            score += 1
-
-                        # 출판일이 있으면 +1점
+                            completeness_score += 1
                         if volume_info.get('publishedDate'):
-                            score += 1
+                            completeness_score += 1
 
-                        if score > best_score:
-                            best_score = score
+                        # 종합 점수 = 완전성 + 유사도 보너스
+                        total_score = completeness_score + (similarity * 3)
+
+                        if total_score > best_score:
+                            best_score = total_score
                             best_match = item
 
                     return best_match
@@ -82,6 +109,49 @@ class MetadataEnricher:
         except Exception as e:
             print(f"  ⚠️  Google Books API 오류: {e}")
             return None
+
+    def search_google_books(self, title: str, author: str = None) -> Optional[Dict]:
+        """점진적 검색 전략으로 책 정보 검색"""
+        print(f"  🔍 검색 전략 시작...")
+
+        # 정제된 제목 준비
+        cleaned_title = self.clean_title(title)
+
+        # 검색 시도 순서
+        search_attempts = []
+
+        # 1차: 원본 제목 + 저자
+        if author:
+            query = f"{title} {author}"
+            search_attempts.append(("원본+저자", query))
+
+        # 2차: 정제된 제목 + 저자 (원본과 다를 때만)
+        if author and cleaned_title != title:
+            query = f"{cleaned_title} {author}"
+            search_attempts.append(("정제+저자", query))
+
+        # 3차: 정제된 제목만
+        if cleaned_title != title:
+            search_attempts.append(("정제", cleaned_title))
+
+        # 4차: 원본 제목만
+        search_attempts.append(("원본", title))
+
+        # 순차적으로 시도
+        for attempt_name, query in search_attempts:
+            print(f"  📖 [{attempt_name}] '{query}' 검색 중...")
+            result = self.search_google_books_single(query, title)
+
+            if result:
+                volume_info = result.get('volumeInfo', {})
+                result_title = volume_info.get('title', '알 수 없음')
+                similarity = self.calculate_title_similarity(title, result_title)
+                print(f"  ✅ 발견! '{result_title}' (유사도: {similarity:.2f})")
+                return result
+            else:
+                print(f"  ❌ 결과 없음")
+
+        return None
 
     def download_cover_image(self, image_url: str, filename: str) -> Optional[str]:
         """표지 이미지 다운로드 (가장 큰 유효한 이미지 선택, 올바른 확장자 사용)"""
@@ -246,22 +316,39 @@ class MetadataEnricher:
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 metadata = json.load(f)
 
+        # 이미 시도했으면 스킵
+        if metadata.get('enrichment_attempted'):
+            print(f"⏭️  {title[:50]}... - 이미 보완 시도함")
+            self.skipped_count += 1
+            return False
+
         # 이미 완전한 메타데이터가 있으면 스킵
         has_cover = metadata.get('cover') is not None
         has_description = metadata.get('description') is not None
 
         if has_cover and has_description:
             print(f"⏭️  {title[:50]}... - 이미 완전한 메타데이터 존재")
+            metadata['enrichment_attempted'] = True
+            with open(metadata_path, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=2)
             self.skipped_count += 1
             return False
 
-        print(f"🔍 {title[:50]}... 검색 중...")
+        print(f"🔍 {title[:50]}...")
+
+        # 저자 정보 추출 (있으면 검색에 활용)
+        author = metadata.get('author')
 
         # Google Books에서 검색
-        book_info = self.search_google_books(title)
+        book_info = self.search_google_books(title, author)
 
         if not book_info:
             print(f"  ❌ 검색 결과 없음")
+            # 실패해도 플래그 저장 (재시도 방지)
+            metadata['enrichment_attempted'] = True
+            METADATA_DIR.mkdir(parents=True, exist_ok=True)
+            with open(metadata_path, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=2)
             self.failed_count += 1
             return False
 
@@ -317,6 +404,9 @@ class MetadataEnricher:
             updated = True
 
         # 메타데이터 저장
+        # 시도했음을 표시 (성공/실패 무관)
+        metadata['enrichment_attempted'] = True
+
         if updated:
             METADATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -328,6 +418,10 @@ class MetadataEnricher:
             return True
         else:
             print(f"  ⚠️  보완할 정보 없음")
+            # 업데이트 없어도 플래그는 저장
+            METADATA_DIR.mkdir(parents=True, exist_ok=True)
+            with open(metadata_path, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=2)
             self.failed_count += 1
             return False
 
