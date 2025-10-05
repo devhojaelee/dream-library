@@ -78,11 +78,12 @@ export default function EinkMyPageLayout({
         borderBottom: '2px solid #000000',
         padding: '16px'
       }}>
+        {/* Mobile: Stack layout, Desktop: Horizontal layout */}
         <div style={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+          flexDirection: 'column',
+          gap: '12px'
+        }} className="md:flex-row md:items-center md:justify-between md:gap-0">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
               width: '40px',
@@ -109,16 +110,43 @@ export default function EinkMyPageLayout({
           <Link
             href="/eink"
             className="eink-button"
-            style={{ textDecoration: 'none' }}
+            style={{ textDecoration: 'none', display: 'flex', justifyContent: 'flex-end' }}
           >
             홈
           </Link>
         </div>
+
+        {/* Mobile: Horizontal scroll navigation */}
+        <nav className="md:hidden" style={{ marginTop: '12px', overflowX: 'auto' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={isActive ? 'eink-button-primary' : 'eink-button'}
+                  style={{
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '16px',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <span style={{ fontSize: '20px' }}>{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </header>
 
       <div style={{ display: 'flex' }}>
-        {/* Sidebar */}
-        <aside style={{
+        {/* Sidebar - Desktop only */}
+        <aside className="hidden md:block" style={{
           width: '200px',
           background: '#ffffff',
           borderRight: '2px solid #000000',

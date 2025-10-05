@@ -67,28 +67,54 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-              A
+        <div className="px-4 md:px-6 py-4">
+          {/* Mobile: Stack layout, Desktop: Horizontal layout */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                A
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">관리자</h1>
             </div>
-            <h1 className="text-xl font-bold text-gray-900">관리자</h1>
+            <Link
+              href="/"
+              className="text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-end gap-2 min-h-[44px]"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="font-medium">홈</span>
+            </Link>
           </div>
-          <Link
-            href="/"
-            className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-            <span className="font-medium">홈</span>
-          </Link>
         </div>
+
+        {/* Mobile: Horizontal scroll navigation */}
+        <nav className="md:hidden px-4 pb-3 overflow-x-auto">
+          <div className="flex gap-2">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all text-sm whitespace-nowrap min-h-[44px] ${
+                    isActive
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'bg-white text-gray-700 border border-gray-300'
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-44 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)] sticky top-[73px]">
+        {/* Sidebar - Desktop only */}
+        <aside className="hidden md:block w-44 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)] sticky top-[73px]">
           <nav className="p-2">
             <div className="space-y-1">
               {navItems.map((item) => {
@@ -113,7 +139,7 @@ export default function AdminLayout({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
