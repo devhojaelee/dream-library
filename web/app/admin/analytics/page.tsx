@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
 
   // Calculate system health
   const getSystemHealth = (): SystemHealth => {
-    if (!analytics) return 'warning';
+    if (!analytics?.predictiveInsights?.churnRiskScore) return 'warning';
 
     const criticalIssues = analytics.predictiveInsights.churnRiskScore.highRisk;
     const retentionHealth = analytics.retentionMetrics.d7Retention;
@@ -196,8 +196,8 @@ export default function AnalyticsPage() {
   };
 
   const config = healthConfig[systemHealth];
-  const userGrowthTrend = getTrendIndicator(analytics.predictiveInsights.growthMomentum.userGrowthRate);
-  const downloadGrowthTrend = getTrendIndicator(analytics.predictiveInsights.growthMomentum.downloadGrowthRate);
+  const userGrowthTrend = getTrendIndicator(analytics.predictiveInsights?.growthMomentum?.userGrowthRate ?? 0);
+  const downloadGrowthTrend = getTrendIndicator(analytics.predictiveInsights?.growthMomentum?.downloadGrowthRate ?? 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-4">🚨 주요 알림 (Critical Alerts)</h2>
             <div className="space-y-3">
-              {analytics.predictiveInsights.churnRiskScore.highRisk > 0 && (
+              {analytics.predictiveInsights?.churnRiskScore?.highRisk > 0 && (
                 <div className="p-4 bg-red-50 rounded-lg border border-red-200">
                   <div className="flex items-start justify-between">
                     <div>
@@ -242,13 +242,13 @@ export default function AnalyticsPage() {
                       <div className="text-xs text-red-700 mt-1">즉시 조치 필요</div>
                     </div>
                     <div className="text-2xl font-bold text-red-600">
-                      {analytics.predictiveInsights.churnRiskScore.highRisk}
+                      {analytics.predictiveInsights?.churnRiskScore?.highRisk ?? 0}
                     </div>
                   </div>
                 </div>
               )}
 
-              {analytics.retentionMetrics.d7Retention < 60 && (
+              {analytics.retentionMetrics?.d7Retention < 60 && (
                 <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-start justify-between">
                     <div>
@@ -262,7 +262,7 @@ export default function AnalyticsPage() {
                 </div>
               )}
 
-              {analytics.predictiveInsights.churnRiskScore.highRisk === 0 && analytics.retentionMetrics.d7Retention >= 60 && (
+              {analytics.predictiveInsights?.churnRiskScore?.highRisk === 0 && analytics.retentionMetrics?.d7Retention >= 60 && (
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200 text-center">
                   <div className="text-3xl mb-2">✓</div>
                   <div className="text-sm font-medium text-green-900">문제 없음</div>
@@ -331,14 +331,14 @@ export default function AnalyticsPage() {
         {/* ========== MOBILE: 상태 + 주요 지표 ========== */}
         <div className="lg:hidden space-y-4">
           {/* Critical Alert */}
-          {analytics.predictiveInsights.churnRiskScore.highRisk > 0 && (
+          {analytics.predictiveInsights?.churnRiskScore?.highRisk > 0 && (
             <div className="bg-red-50 border-2 border-red-300 rounded-xl p-6 shadow-sm">
               <div className="flex items-start gap-3">
                 <div className="text-3xl">⚠️</div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-red-900 mb-1">주의 필요</h3>
                   <p className="text-sm text-red-700 mb-3">
-                    {analytics.predictiveInsights.churnRiskScore.highRisk}명이 이탈 위험 상태입니다
+                    {analytics.predictiveInsights?.churnRiskScore?.highRisk ?? 0}명이 이탈 위험 상태입니다
                   </p>
                   <button className="w-full bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition">
                     자세히 보기 →
@@ -636,7 +636,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold text-red-700">🔴 고위험군</span>
                   <div className="text-xs text-red-600 mt-0.5">즉시 조치 필요</div>
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-red-600">{analytics.predictiveInsights.churnRiskScore.highRisk}</div>
+                <div className="text-2xl lg:text-3xl font-bold text-red-600">{analytics.predictiveInsights?.churnRiskScore?.highRisk ?? 0}</div>
               </div>
               <div className="border-t border-red-200 pt-2 space-y-1.5">
                 <p className="text-xs text-red-700">2~4주 비활동 • 이탈확률 70%+</p>
@@ -651,7 +651,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold text-amber-700">🟡 중위험군</span>
                   <div className="text-xs text-amber-600 mt-0.5">모니터링 필요</div>
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-amber-600">{analytics.predictiveInsights.churnRiskScore.mediumRisk}</div>
+                <div className="text-2xl lg:text-3xl font-bold text-amber-600">{analytics.predictiveInsights?.churnRiskScore?.mediumRisk ?? 0}</div>
               </div>
               <div className="border-t border-amber-200 pt-2 space-y-1.5">
                 <p className="text-xs text-amber-700">다운로드 1-4권 • 리텐션 40%</p>
@@ -666,7 +666,7 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-semibold text-green-700">🟢 정상 사용자</span>
                   <div className="text-xs text-green-600 mt-0.5">안정적 활동</div>
                 </div>
-                <div className="text-2xl lg:text-3xl font-bold text-green-600">{analytics.predictiveInsights.churnRiskScore.lowRisk}</div>
+                <div className="text-2xl lg:text-3xl font-bold text-green-600">{analytics.predictiveInsights?.churnRiskScore?.lowRisk ?? 0}</div>
               </div>
               <div className="border-t border-green-200 pt-2 space-y-1.5">
                 <p className="text-xs text-green-700">5권 이상 • 리텐션 85%+</p>
