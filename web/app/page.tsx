@@ -493,8 +493,8 @@ export default function Home() {
           )}
         </div>
 
-        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
-          <div>
+        <div className="mb-6">
+          <div className="mb-4">
             <h2 className="text-2xl font-semibold text-gray-900 mb-2">
               전체 도서 ({getFilteredBooks().length}권)
             </h2>
@@ -503,31 +503,31 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Filter Toggles */}
-          <div className="flex gap-3 flex-wrap justify-end">
+          {/* Filter Toggles - Mobile: 2-column grid, Desktop: Horizontal */}
+          <div className="grid grid-cols-2 md:flex gap-2 md:gap-3 md:justify-end">
             <button
               onClick={() => setShowRecentOnly(!showRecentOnly)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
+              className={`flex items-center justify-center gap-1.5 px-3 py-3 md:px-4 md:py-2 rounded-lg font-medium transition-colors border min-h-[48px] text-sm md:text-base ${
                 showRecentOnly
                   ? 'bg-purple-500 text-white hover:bg-purple-600 border-purple-500'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
               }`}
             >
               <span>{showRecentOnly ? '✅' : '☐'}</span>
-              <span>최근 일주일 신작</span>
+              <span className="whitespace-nowrap">최근 일주일 신작</span>
             </button>
 
             {user && user.downloadedBooks.length > 0 && (
               <button
                 onClick={() => setHideDownloaded(!hideDownloaded)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors border ${
+                className={`flex items-center justify-center gap-1.5 px-3 py-3 md:px-4 md:py-2 rounded-lg font-medium transition-colors border min-h-[48px] text-sm md:text-base ${
                   hideDownloaded
                     ? 'bg-blue-500 text-white hover:bg-blue-600 border-blue-500'
                     : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
                 }`}
               >
                 <span>{hideDownloaded ? '✅' : '☐'}</span>
-                <span>다운로드한 도서 제외</span>
+                <span className="whitespace-nowrap">다운로드한 도서 제외</span>
               </button>
             )}
           </div>

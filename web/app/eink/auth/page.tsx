@@ -304,7 +304,6 @@ export default function EinkAuthPage() {
                 padding: '14px 16px',
                 fontSize: '20px',
                 fontWeight: 700,
-                borderRight: '2px solid #000000',
                 background: isLogin ? '#000000' : '#ffffff',
                 color: isLogin ? '#ffffff' : '#000000',
                 border: 'none',
