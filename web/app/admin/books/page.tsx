@@ -261,10 +261,10 @@ export default function AdminBooksPage() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">책 관리</h2>
-        <div className="text-sm text-gray-800 font-medium">
+    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 border border-gray-300">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">책 관리</h2>
+        <div className="text-xs md:text-sm text-gray-800 font-medium">
           총 <span className="font-semibold text-gray-900">{filteredBooks.length}</span>권
         </div>
       </div>
@@ -283,46 +283,48 @@ export default function AdminBooksPage() {
       )}
 
       {/* Search & Controls */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+      <div className="mb-4 md:mb-6 flex flex-col gap-3">
+        <div className="w-full">
           <input
             type="text"
             placeholder="제목 또는 저자로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
+            className="w-full px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 text-sm md:text-base min-h-[44px]"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <button
             onClick={() => setShowOnlyReview(!showOnlyReview)}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+            className={`px-3 md:px-4 py-2.5 md:py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm md:text-base min-h-[44px] ${
               showOnlyReview
                 ? 'bg-yellow-500 text-white border border-yellow-600'
                 : 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50'
             }`}
           >
-            <span className="text-lg">{showOnlyReview ? '☑' : '☐'}</span>
-            <span>🚨 검토 필요만 보기</span>
+            <span className="text-base md:text-lg">{showOnlyReview ? '☑' : '☐'}</span>
+            <span>🚨 검토 필요만</span>
           </button>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'title')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
-          >
-            <option value="newest">최신순</option>
-            <option value="oldest">오래된순</option>
-            <option value="title">제목순</option>
-          </select>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
-          >
-            <option value={10}>10개씩</option>
-            <option value={20}>20개씩</option>
-            <option value={50}>50개씩</option>
-          </select>
+          <div className="flex gap-2 flex-1">
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest' | 'title')}
+              className="flex-1 px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium text-sm md:text-base min-h-[44px]"
+            >
+              <option value="newest">최신순</option>
+              <option value="oldest">오래된순</option>
+              <option value="title">제목순</option>
+            </select>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              className="flex-1 px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium text-sm md:text-base min-h-[44px]"
+            >
+              <option value={10}>10개씩</option>
+              <option value={20}>20개씩</option>
+              <option value={50}>50개씩</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -342,10 +344,11 @@ export default function AdminBooksPage() {
         </div>
       )}
 
-      {/* Books Table */}
+      {/* Books Table/Cards */}
       {!loading && currentBooks.length > 0 && (
         <>
-          <div className="overflow-x-auto">
+          {/* Desktop: Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
@@ -414,42 +417,110 @@ export default function AdminBooksPage() {
             </table>
           </div>
 
+          {/* Mobile: Cards */}
+          <div className="md:hidden space-y-3">
+            {currentBooks.map((book) => (
+              <div
+                key={book.filename}
+                className={`border rounded-lg p-3 ${
+                  book.needsReview
+                    ? 'bg-yellow-50 border-yellow-300'
+                    : 'bg-white border-gray-200'
+                }`}
+              >
+                <div className="flex gap-3">
+                  {/* Cover */}
+                  <div className="flex-shrink-0">
+                    {book.cover ? (
+                      <Image
+                        src={`/api/covers/${book.cover}${book.coverUpdated ? `?v=${book.coverUpdated}` : ''}`}
+                        alt={book.title}
+                        width={60}
+                        height={90}
+                        className="rounded shadow-md object-cover"
+                      />
+                    ) : (
+                      <div className="w-[60px] h-[90px] bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                        표지 없음
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    {/* Title with badge */}
+                    <div className="flex items-start gap-2 mb-2">
+                      {book.needsReview && (
+                        <span className="text-xl flex-shrink-0" title="검토 필요">
+                          🚨
+                        </span>
+                      )}
+                      <h3 className="text-sm font-bold text-gray-900 line-clamp-2 flex-1">
+                        {book.title}
+                      </h3>
+                    </div>
+
+                    {/* Author & Year */}
+                    <div className="space-y-1 mb-3">
+                      <div className="text-xs text-gray-700">
+                        <span className="font-semibold">저자:</span> {book.author || '-'}
+                      </div>
+                      <div className="text-xs text-gray-700">
+                        <span className="font-semibold">연도:</span> {book.year || '-'}
+                      </div>
+                    </div>
+
+                    {/* Edit Button */}
+                    <button
+                      onClick={() => openEditModal(book)}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm min-h-[44px]"
+                    >
+                      편집
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-800 font-medium">
-                {startIndex + 1}-{Math.min(endIndex, filteredBooks.length)} / 총 {filteredBooks.length}권
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-gray-700 font-medium"
-                >
-                  이전
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white font-semibold'
-                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+            <div className="mt-4 md:mt-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="text-xs md:text-sm text-gray-800 font-medium text-center md:text-left">
+                  {startIndex + 1}-{Math.min(endIndex, filteredBooks.length)} / 총 {filteredBooks.length}권
                 </div>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-gray-700 font-medium"
-                >
-                  다음
-                </button>
+                <div className="flex justify-center gap-1 md:gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm md:text-base min-h-[44px]"
+                  >
+                    이전
+                  </button>
+                  <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] md:max-w-none">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-2.5 md:px-3 py-2 rounded-lg transition-colors text-sm md:text-base min-h-[44px] flex-shrink-0 ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white font-semibold'
+                            : 'border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-gray-700 font-medium text-sm md:text-base min-h-[44px]"
+                  >
+                    다음
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -458,29 +529,29 @@ export default function AdminBooksPage() {
 
       {/* Edit Modal */}
       {editingBook && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">책 정보 수정</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-0 md:p-4">
+          <div className="bg-white md:rounded-xl shadow-2xl max-w-2xl w-full h-full md:h-auto md:max-h-[90vh] overflow-y-auto">
+            <div className="p-4 md:p-6">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
+                <h3 className="text-lg md:text-2xl font-bold text-gray-900">책 정보 수정</h3>
                 <button
                   onClick={closeEditModal}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-gray-400 hover:text-gray-600 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 md:w-7 md:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               {/* Naver Search Button */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
+              <div className="mb-4 md:mb-6 pb-4 md:pb-6 border-b border-gray-200">
                 <button
                   onClick={handleNaverSearch}
                   disabled={naverSearching || !editForm.title}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 md:px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base min-h-[44px]"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   <span>{naverSearching ? '검색 중...' : '네이버에서 자동으로 찾기'}</span>
@@ -626,18 +697,18 @@ export default function AdminBooksPage() {
               </div>
 
               {/* Actions */}
-              <div className="mt-6 flex justify-end gap-3">
+              <div className="mt-4 md:mt-6 flex flex-col sm:flex-row justify-end gap-2 md:gap-3">
                 <button
                   onClick={closeEditModal}
                   disabled={saving}
-                  className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
+                  className="w-full sm:w-auto px-6 py-2.5 md:py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 text-gray-900 font-semibold text-sm md:text-base min-h-[44px]"
                 >
                   취소
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full sm:w-auto px-6 py-2.5 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 font-semibold text-sm md:text-base min-h-[44px]"
                 >
                   {saving ? '저장 중...' : '저장'}
                 </button>

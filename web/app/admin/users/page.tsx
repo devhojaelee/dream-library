@@ -234,19 +234,19 @@ export default function AdminUsersPage() {
   const approvedCount = allUsers.filter(u => u.approved && u.role !== 'admin').length;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-300">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">사용자 관리</h2>
-        <div className="text-sm text-gray-800 font-medium">
+    <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 border border-gray-300">
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900">사용자 관리</h2>
+        <div className="text-xs md:text-sm text-gray-800 font-medium">
           총 <span className="font-semibold text-gray-900">{allUsers.length}</span>명
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      <div className="flex gap-1 md:gap-2 mb-4 md:mb-6 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('all')}
-          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+          className={`px-3 md:px-4 py-2 font-medium transition-colors border-b-2 text-sm md:text-base whitespace-nowrap min-h-[44px] ${
             activeTab === 'all'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -256,7 +256,7 @@ export default function AdminUsersPage() {
         </button>
         <button
           onClick={() => setActiveTab('pending')}
-          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+          className={`px-3 md:px-4 py-2 font-medium transition-colors border-b-2 text-sm md:text-base whitespace-nowrap min-h-[44px] ${
             activeTab === 'pending'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -266,7 +266,7 @@ export default function AdminUsersPage() {
         </button>
         <button
           onClick={() => setActiveTab('approved')}
-          className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+          className={`px-3 md:px-4 py-2 font-medium transition-colors border-b-2 text-sm md:text-base whitespace-nowrap min-h-[44px] ${
             activeTab === 'approved'
               ? 'border-blue-500 text-blue-600'
               : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -290,21 +290,21 @@ export default function AdminUsersPage() {
       )}
 
       {/* Search & Controls */}
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="flex-1">
+      <div className="mb-4 md:mb-6 flex flex-col gap-3 md:gap-4">
+        <div className="w-full">
           <input
             type="text"
             placeholder="이름 또는 이메일로 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600"
+            className="w-full px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 text-sm md:text-base min-h-[44px]"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+            className="flex-1 md:flex-none px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium text-sm md:text-base min-h-[44px]"
           >
             <option value="newest">최신순</option>
             <option value="oldest">오래된순</option>
@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium"
+            className="flex-1 md:flex-none px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 font-medium text-sm md:text-base min-h-[44px]"
           >
             <option value={10}>10개씩</option>
             <option value={20}>20개씩</option>
@@ -323,30 +323,30 @@ export default function AdminUsersPage() {
 
       {/* Bulk Actions */}
       {selectedUsers.size > 0 && (
-        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
-          <div className="text-gray-700 text-sm font-medium">
+        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between min-h-[44px]">
+          <div className="text-gray-700 text-sm md:text-base font-medium">
             {selectedUsers.size}명 선택
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 md:gap-3">
             {activeTab !== 'approved' && (
               <button
                 onClick={handleBulkApprove}
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors flex items-center gap-1.5"
+                className="text-blue-600 hover:text-blue-700 text-sm md:text-base font-medium transition-colors flex items-center gap-1.5 min-h-[44px] px-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                승인
+                <span className="hidden sm:inline">승인</span>
               </button>
             )}
             <button
               onClick={handleBulkDelete}
-              className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors flex items-center gap-1.5"
+              className="text-red-600 hover:text-red-700 text-sm md:text-base font-medium transition-colors flex items-center gap-1.5 min-h-[44px] px-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              삭제
+              <span className="hidden sm:inline">삭제</span>
             </button>
           </div>
         </div>
@@ -368,10 +368,11 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* User Table */}
+      {/* User Table/Cards */}
       {!loading && currentUsers.length > 0 && (
         <>
-          <div className="overflow-x-auto">
+          {/* Desktop: Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
                 <tr>
@@ -469,42 +470,110 @@ export default function AdminUsersPage() {
             </table>
           </div>
 
+          {/* Mobile: Cards */}
+          <div className="md:hidden space-y-3">
+            {currentUsers.map((user) => (
+              <div
+                key={user.id}
+                className="bg-white border border-gray-200 rounded-lg p-4"
+              >
+                {/* Header with checkbox and status */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.has(user.id)}
+                      onChange={() => toggleSelectUser(user.id)}
+                      className="w-5 h-5 rounded border-gray-300 cursor-pointer mt-0.5 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-bold text-gray-900 mb-1 break-words">{user.username}</div>
+                      <div className="text-sm text-gray-600 break-all">{user.email}</div>
+                    </div>
+                  </div>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 flex-shrink-0 ${
+                      user.role === 'admin'
+                        ? 'bg-red-100 text-red-800'
+                        : !user.approved
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}
+                  >
+                    {user.role === 'admin' ? '관리자' : !user.approved ? '대기중' : '일반'}
+                  </span>
+                </div>
+
+                {/* Info */}
+                <div className="mb-3 text-sm text-gray-600">
+                  가입일: {new Date(user.createdAt).toLocaleDateString('ko-KR')}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  {!user.approved && user.role !== 'admin' && (
+                    <button
+                      onClick={() => handleApprove(user.id, user.username)}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      승인
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(user.id, user.username)}
+                    className={`${!user.approved && user.role !== 'admin' ? 'flex-1' : 'w-full'} bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 min-h-[44px]`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-800 font-medium">
-                {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} / 총 {filteredUsers.length}명
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                >
-                  이전
-                </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-blue-600 text-white font-semibold'
-                          : 'border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+            <div className="mt-4 md:mt-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <div className="text-xs md:text-sm text-gray-800 font-medium text-center md:text-left">
+                  {startIndex + 1}-{Math.min(endIndex, filteredUsers.length)} / 총 {filteredUsers.length}명
                 </div>
-                <button
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                >
-                  다음
-                </button>
+                <div className="flex justify-center gap-1 md:gap-2">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-sm md:text-base min-h-[44px]"
+                  >
+                    이전
+                  </button>
+                  <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] md:max-w-none">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-2.5 md:px-3 py-2 rounded-lg transition-colors text-sm md:text-base min-h-[44px] flex-shrink-0 ${
+                          currentPage === page
+                            ? 'bg-blue-600 text-white font-semibold'
+                            : 'border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors text-sm md:text-base min-h-[44px]"
+                  >
+                    다음
+                  </button>
+                </div>
               </div>
             </div>
           )}
