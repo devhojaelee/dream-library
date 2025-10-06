@@ -36,6 +36,10 @@ yarn-error.log*
 .env.local
 .env*.local
 
+# Service-specific environment files
+web/.env
+crawler/.env
+
 # IDE
 .vscode/
 .idea/

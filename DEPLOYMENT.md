@@ -52,18 +52,45 @@ Dream Library는 독립적으로 관리 가능한 두 개의 폴더로 구성됩
    ```
 
 2. **환경 변수 설정**
-   ```bash
-   cd /volume1/docker/dream-library
 
-   # .env 파일 생성
+   각 서비스별로 환경 변수를 설정합니다:
+
+   **Crawler 서비스 환경 변수:**
+   ```bash
+   cd /volume1/docker/dream-library/crawler
+
+   # .env 파일 생성 (또는 .env.example 복사 후 수정)
    cat > .env << 'EOF'
+   # Z-Library Credentials
    ZLIBRARY_EMAIL=your-email@example.com
    ZLIBRARY_PASSWORD=your-password
+
+   # Naver Books API Credentials
+   NAVER_CLIENT_ID=your-naver-client-id
+   NAVER_CLIENT_SECRET=your-naver-client-secret
+
+   # Docker User/Group IDs
    CONTAINER_UID=1001
    CONTAINER_GID=1001
-   EMAIL_USER=hoje0711@naver.com
-   EMAIL_PASSWORD=DSENDBPW412N
+   EOF
+   ```
+
+   **Web 서비스 환경 변수:**
+   ```bash
+   cd /volume1/docker/dream-library/web
+
+   # .env 파일 생성 (또는 .env.example 복사 후 수정)
+   cat > .env << 'EOF'
+   # Email Service Credentials
+   EMAIL_USER=your-email@example.com
+   EMAIL_PASSWORD=your-email-password
+
+   # JWT Secret (change in production)
    JWT_SECRET=your-secret-key-change-in-production
+
+   # Docker User/Group IDs
+   CONTAINER_UID=1001
+   CONTAINER_GID=1001
    EOF
    ```
 
@@ -153,6 +180,25 @@ cd crawler && docker-compose down
 두 서비스는 루트의 `books/` 디렉토리를 공유합니다:
 - **Crawler**: 책 다운로드, 메타데이터 생성, `download_status.json` 생성
 - **Web**: 책 목록 표시, 다운로드 제공, `download_status.json` 읽기
+
+## 환경 변수 관리
+
+각 서비스는 독립적인 `.env` 파일을 사용합니다:
+
+### Crawler 환경 변수 (`crawler/.env`)
+- `ZLIBRARY_EMAIL`: Z-Library 계정 이메일
+- `ZLIBRARY_PASSWORD`: Z-Library 비밀번호
+- `NAVER_CLIENT_ID`: Naver Books API 클라이언트 ID
+- `NAVER_CLIENT_SECRET`: Naver Books API 시크릿
+
+### Web 환경 변수 (`web/.env`)
+- `EMAIL_USER`: 이메일 서비스 계정
+- `EMAIL_PASSWORD`: 이메일 비밀번호
+- `JWT_SECRET`: JWT 토큰 시크릿 (프로덕션에서 변경 필수)
+
+### 공통 환경 변수
+- `CONTAINER_UID`: Docker 컨테이너 UID (기본: 1001)
+- `CONTAINER_GID`: Docker 컨테이너 GID (기본: 1001)
 
 ---
 
