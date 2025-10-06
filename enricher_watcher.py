@@ -31,36 +31,24 @@ class DownloadStatusHandler(FileSystemEventHandler):
             print("⏭️  Already processing, skipping duplicate trigger")
             return
 
-        # Wait briefly to avoid race condition with file write
-        time.sleep(0.5)
-
         # Check if this is a duplicate trigger (same timestamp)
+        # Atomic rename guarantees complete file, no race condition
         status_file = '/app/books/download_status.json'
 
-        # Retry file read up to 3 times to handle race conditions
-        for attempt in range(3):
-            try:
-                with open(status_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    current_timestamp = data.get('waitUntil')
+        try:
+            with open(status_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                current_timestamp = data.get('waitUntil')
 
-                    if current_timestamp == self.last_processed_timestamp:
-                        print(f"⏭️  Already processed timestamp {current_timestamp}, ignoring")
-                        return
+                if current_timestamp == self.last_processed_timestamp:
+                    print(f"⏭️  Already processed timestamp {current_timestamp}, ignoring")
+                    return
 
-                    # Update last processed timestamp
-                    self.last_processed_timestamp = current_timestamp
-                    break  # Success, exit retry loop
-            except json.JSONDecodeError as e:
-                if attempt < 2:  # Retry
-                    print(f"⏳ File read attempt {attempt + 1} failed, retrying...")
-                    time.sleep(0.5)
-                else:  # Final attempt failed
-                    print(f"⚠️  Could not read status file after 3 attempts: {e}")
-                    return  # Skip this trigger entirely
-            except Exception as e:
-                print(f"⚠️  Unexpected error reading status file: {e}")
-                return
+                # Update last processed timestamp
+                self.last_processed_timestamp = current_timestamp
+        except Exception as e:
+            print(f"⚠️  Could not read status file: {e}")
+            return  # Skip this trigger
 
         self.processing = True
         try:

@@ -13,6 +13,7 @@ books/covers/*
 books/metadata/*
 download_log.txt
 books/download_status.json
+books/download_status.tmp
 
 # User data
 web/data/users.json

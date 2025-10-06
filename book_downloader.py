@@ -354,13 +354,20 @@ def download_incremental():
                                         "downloadedFiles": list(downloaded_titles)  # List of downloaded book titles
                                     }
                                     status_path = "./books/download_status.json"
+                                    status_tmp_path = "./books/download_status.tmp"
                                     try:
-                                        with open(status_path, 'w', encoding='utf-8') as f:
+                                        # Atomic write: write to temp file, then rename
+                                        with open(status_tmp_path, 'w', encoding='utf-8') as f:
                                             json.dump(status_data, f, ensure_ascii=False, indent=2)
+                                        # Atomic rename - OS guarantees atomicity
+                                        os.replace(status_tmp_path, status_path)
                                         print(f"  📝 Saved download status: wait until {wait_until.strftime('%Y-%m-%d %H:%M:%S')}")
                                         print(f"  📋 Tracked {len(downloaded_titles)} downloaded files for enrichment")
                                     except Exception as status_err:
                                         print(f"  ⚠️ Could not save status: {status_err}")
+                                        # Clean up temp file if it exists
+                                        if os.path.exists(status_tmp_path):
+                                            os.remove(status_tmp_path)
 
                                     print(f"  💤 Waiting {total_wait_seconds + 10}s...")
                                     time.sleep(total_wait_seconds + 10)
