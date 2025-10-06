@@ -47,7 +47,38 @@ export default function Home() {
   const [encouragementMsg, setEncouragementMsg] = useState('');
   const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [showRecentOnly, setShowRecentOnly] = useState(false);
-  const [booksPerPage, setBooksPerPage] = useState(20);
+  const [booksPerPage, setBooksPerPage] = useState(() => {
+    // Calculate initial books per page before first render
+    if (typeof window === 'undefined') return 20;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    let columns = 2;
+
+    if (width >= 1280) columns = 5;
+    else if (width >= 1024) columns = 4;
+    else if (width >= 768) columns = 3;
+    else if (width >= 360) columns = 3;
+    else columns = 2;
+
+    // Calculate rows based on viewport height
+    // Approximate: 320px per book card (280px card + 40px gap)
+    const headerHeight = 250; // header + banner + search + title
+    const availableHeight = height - headerHeight;
+    const estimatedRows = Math.max(Math.floor(availableHeight / 320), 4);
+
+    let booksToShow = columns * estimatedRows;
+
+    // Ensure minimum books based on screen size
+    if (width >= 1024) {
+      booksToShow = Math.max(booksToShow, 20);
+    } else {
+      booksToShow = Math.max(booksToShow, 10);
+    }
+
+    return booksToShow;
+  });
+  const [autoLoadEnabled, setAutoLoadEnabled] = useState(true);
   const router = useRouter();
 
   // Fisher-Yates shuffle algorithm
@@ -65,16 +96,28 @@ export default function Home() {
     if (typeof window === 'undefined') return 20;
 
     const width = window.innerWidth;
-    let columns = 2; // default mobile
+    const height = window.innerHeight;
+    let columns = 2;
 
-    if (width >= 1280) columns = 5; // xl
-    else if (width >= 1024) columns = 4; // lg
-    else if (width >= 768) columns = 3; // md
-    else if (width >= 360) columns = 3; // 6-8인치 액정 (360px 이상)
-    else columns = 2; // default
+    if (width >= 1280) columns = 5;
+    else if (width >= 1024) columns = 4;
+    else if (width >= 768) columns = 3;
+    else if (width >= 360) columns = 3;
+    else columns = 2;
 
-    const rows = 5; // Show ~5 rows worth of books
-    const booksToShow = columns * rows;
+    // Calculate rows based on viewport height
+    const headerHeight = 250;
+    const availableHeight = height - headerHeight;
+    const estimatedRows = Math.max(Math.floor(availableHeight / 320), 4);
+
+    let booksToShow = columns * estimatedRows;
+
+    // Ensure minimum books based on screen size
+    if (width >= 1024) {
+      booksToShow = Math.max(booksToShow, 20);
+    } else {
+      booksToShow = Math.max(booksToShow, 10);
+    }
 
     setBooksPerPage(booksToShow);
     return booksToShow;
@@ -171,6 +214,42 @@ export default function Home() {
       });
   }, []);
 
+  // Fill incomplete last row based on screen columns
+  useEffect(() => {
+    if (!autoLoadEnabled || displayedBooks.length === 0) return;
+
+    const fillLastRow = () => {
+      // Calculate columns based on current screen size
+      const width = window.innerWidth;
+      let columns = 2;
+
+      if (width >= 1280) columns = 5;
+      else if (width >= 1024) columns = 4;
+      else if (width >= 768) columns = 3;
+      else if (width >= 360) columns = 3;
+      else columns = 2;
+
+      const remainder = displayedBooks.length % columns;
+      const filteredBooks = getFilteredBooks();
+      const hasMore = displayedBooks.length < filteredBooks.length;
+
+      // If last row is incomplete (remainder > 0) and more books available
+      if (remainder > 0 && hasMore) {
+        const booksToAdd = columns - remainder; // Fill only the incomplete row
+        const newCount = Math.min(displayedBooks.length + booksToAdd, filteredBooks.length);
+        const nextBatch = filteredBooks.slice(0, newCount);
+        setDisplayedBooks(nextBatch);
+      } else {
+        // Stop auto-loading once row is complete or no more books
+        setAutoLoadEnabled(false);
+      }
+    };
+
+    // Small delay to ensure DOM is updated
+    const timer = setTimeout(fillLastRow, 100);
+    return () => clearTimeout(timer);
+  }, [displayedBooks, autoLoadEnabled]);
+
   // Filter books based on hideDownloaded, showRecentOnly and search query
   useEffect(() => {
     let filteredBooks = allBooks;
@@ -204,6 +283,7 @@ export default function Home() {
 
     setDisplayedBooks(filteredBooks.slice(0, booksPerPage));
     setPage(1);
+    setAutoLoadEnabled(true); // Re-enable auto-load when filters change
   }, [hideDownloaded, showRecentOnly, allBooks, user, searchQuery, booksPerPage]);
 
   // Create shooting stars dynamically based on viewport
@@ -264,6 +344,7 @@ export default function Home() {
     const newBooks = filteredBooks.slice(0, endIndex);
     setDisplayedBooks(newBooks);
     setPage(nextPage);
+    setAutoLoadEnabled(true); // Re-enable auto-load for new page
   };
 
   const getFilteredBooks = () => {

@@ -40,7 +40,33 @@ export default function EinkHome() {
   const [encouragementMsg, setEncouragementMsg] = useState('');
   const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [showRecentOnly, setShowRecentOnly] = useState(false);
-  const [booksPerPage, setBooksPerPage] = useState(10);
+  const [booksPerPage, setBooksPerPage] = useState(() => {
+    // Calculate initial books per page before first render
+    if (typeof window === 'undefined') return 20;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    let columns = 2;
+
+    if (width >= 1024) columns = 5;
+    else if (width >= 768) columns = 4;
+    else if (width >= 480) columns = 3;
+    else if (width >= 360) columns = 3;
+    else columns = 2;
+
+    const headerHeight = 200;
+    const availableHeight = height - headerHeight;
+    const estimatedRows = Math.max(Math.floor(availableHeight / 280), 3);
+    let booksToShow = columns * estimatedRows;
+
+    if (width >= 1024) {
+      booksToShow = Math.max(booksToShow, 20);
+    } else {
+      booksToShow = Math.max(booksToShow, 10);
+    }
+
+    return booksToShow;
+  });
   const [autoLoadEnabled, setAutoLoadEnabled] = useState(true);
   const router = useRouter();
 
@@ -165,32 +191,41 @@ export default function EinkHome() {
       });
   }, []);
 
-  // Auto-load more books if there's empty space
+  // Fill incomplete last row based on screen columns
   useEffect(() => {
     if (!autoLoadEnabled || displayedBooks.length === 0) return;
 
-    const checkAndLoadMore = () => {
-      const contentHeight = document.documentElement.scrollHeight;
-      const viewportHeight = window.innerHeight;
-      const hasEmptySpace = contentHeight < viewportHeight;
+    const fillLastRow = () => {
+      // Calculate columns based on current screen size
+      const width = window.innerWidth;
+      let columns = 2;
 
-      // If there's empty space and more books available, load more
+      if (width >= 1024) columns = 5;
+      else if (width >= 768) columns = 4;
+      else if (width >= 480) columns = 3;
+      else if (width >= 360) columns = 3;
+      else columns = 2;
+
+      const remainder = displayedBooks.length % columns;
       const filteredBooks = getFilteredBooks();
       const hasMore = displayedBooks.length < filteredBooks.length;
 
-      if (hasEmptySpace && hasMore) {
-        const nextBatch = filteredBooks.slice(0, displayedBooks.length + booksPerPage);
+      // If last row is incomplete (remainder > 0) and more books available
+      if (remainder > 0 && hasMore) {
+        const booksToAdd = columns - remainder; // Fill only the incomplete row
+        const newCount = Math.min(displayedBooks.length + booksToAdd, filteredBooks.length);
+        const nextBatch = filteredBooks.slice(0, newCount);
         setDisplayedBooks(nextBatch);
       } else {
-        // Stop auto-loading once filled
+        // Stop auto-loading once row is complete or no more books
         setAutoLoadEnabled(false);
       }
     };
 
     // Small delay to ensure DOM is updated
-    const timer = setTimeout(checkAndLoadMore, 100);
+    const timer = setTimeout(fillLastRow, 100);
     return () => clearTimeout(timer);
-  }, [displayedBooks, booksPerPage, autoLoadEnabled]);
+  }, [displayedBooks, autoLoadEnabled]);
 
   // Filter books based on hideDownloaded, search query, and showRecentOnly
   useEffect(() => {
