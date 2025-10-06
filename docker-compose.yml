@@ -34,6 +34,8 @@ services:
       - ./books:/app/books  # Read-write mount for crawler
     environment:
       - PYTHONUNBUFFERED=1
+      - ZLIBRARY_EMAIL=${ZLIBRARY_EMAIL}
+      - ZLIBRARY_PASSWORD=${ZLIBRARY_PASSWORD}
     restart: unless-stopped  # Auto-start on server boot, restart on crash
     networks:
       - dream-library

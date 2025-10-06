@@ -337,7 +337,7 @@ export async function GET() {
 
     downloads.forEach(d => {
       uniqueBooks.add(d.bookId);
-      const genre = (d as any).genre || 'Unknown';
+      const genre = d.genre || 'Unknown';
       genreDistribution[genre] = (genreDistribution[genre] || 0) + 1;
     });
 
@@ -368,12 +368,12 @@ export async function GET() {
     const longTailValue = totalDownloads > 0 ? Math.round((bottom50Downloads / totalDownloads) * 100) : 0;
 
     // 5. PLATFORM METRICS
-    const einkSessions = downloads.filter(d => (d as any).uiMode === 'eink').length;
+    const einkSessions = downloads.filter(d => d.uiMode === 'eink').length;
     const einkAdoptionRate = totalDownloads > 0 ? Math.round((einkSessions / totalDownloads) * 100) : 0;
 
     const userDevices = new Map<string, Set<string>>();
     downloads.forEach(d => {
-      const deviceType = (d as any).deviceType || 'unknown';
+      const deviceType = d.deviceType || 'unknown';
       if (!userDevices.has(d.userId)) {
         userDevices.set(d.userId, new Set());
       }
@@ -386,8 +386,8 @@ export async function GET() {
     const platformSessions = new Map<string, Map<string, number>>();
 
     downloads.forEach(d => {
-      const platform = (d as any).uiMode || 'unknown';
-      const sessionId = (d as any).sessionId || 'no-session';
+      const platform = d.uiMode || 'unknown';
+      const sessionId = d.sessionId || 'no-session';
 
       if (!platformSessions.has(platform)) {
         platformSessions.set(platform, new Map());

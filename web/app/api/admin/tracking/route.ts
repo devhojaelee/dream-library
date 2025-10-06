@@ -181,9 +181,9 @@ export async function GET() {
           metadata: {
             bookTitle: download.bookTitle,
             bookId: download.bookId,
-            deviceType: (download as any).deviceType,
-            uiMode: (download as any).uiMode,
-            sessionId: (download as any).sessionId,
+            deviceType: download.deviceType,
+            uiMode: download.uiMode,
+            sessionId: download.sessionId,
           },
         });
       });
@@ -199,20 +199,20 @@ export async function GET() {
       const downloadCount = userDownloads.length;
 
       // Calculate sessions
-      const sessions = new Set(userDownloads.map(d => (d as any).sessionId).filter(Boolean));
+      const sessions = new Set(userDownloads.map(d => d.sessionId).filter(Boolean));
       const totalSessions = sessions.size || (downloadCount > 0 ? 1 : 0);
 
       // Device preferences
       const devicePreferences: Record<string, number> = {};
       userDownloads.forEach(d => {
-        const device = (d as any).deviceType || 'unknown';
+        const device = d.deviceType || 'unknown';
         devicePreferences[device] = (devicePreferences[device] || 0) + 1;
       });
 
       // UI mode preferences
       const uiModePreferences: Record<string, number> = {};
       userDownloads.forEach(d => {
-        const mode = (d as any).uiMode || 'unknown';
+        const mode = d.uiMode || 'unknown';
         uiModePreferences[mode] = (uiModePreferences[mode] || 0) + 1;
       });
 
@@ -362,8 +362,8 @@ export async function GET() {
           bookTitle: d.bookTitle,
           bookAuthor: d.bookAuthor,
           downloadedAt: d.downloadedAt,
-          deviceType: (d as any).deviceType,
-          uiMode: (d as any).uiMode,
+          deviceType: d.deviceType,
+          uiMode: d.uiMode,
         }))
         .sort((a, b) => new Date(b.downloadedAt).getTime() - new Date(a.downloadedAt).getTime()); // Most recent first
 
@@ -425,7 +425,7 @@ export async function GET() {
     }>();
 
     downloads.forEach(download => {
-      const sessionId = (download as any).sessionId || `nosession-${download.userId}`;
+      const sessionId = download.sessionId || `nosession-${download.userId}`;
       if (!sessionMap.has(sessionId)) {
         const user = users.find(u => u.id === download.userId);
         sessionMap.set(sessionId, {
@@ -527,20 +527,6 @@ export async function GET() {
     // ============================================================
     // 6. BEHAVIORAL PATTERNS
     // ============================================================
-    const behaviorCounts = {
-      bingeReaders: 0,
-      casualReaders: 0,
-      explorers: 0,
-      powerUsers: 0,
-    };
-
-    userActivities.forEach(user => {
-      if (user.behaviorPattern === 'power_user') behaviorCounts.powerUsers++;
-      else if (user.behaviorPattern === 'binge_reader') behaviorCounts.bingeReaders++;
-      else if (user.behaviorPattern === 'explorer') behaviorCounts.explorers++;
-      else if (user.behaviorPattern === 'casual') behaviorCounts.casualReaders++;
-    });
-
     const downloadDistribution: Record<string, number> = {
       '0 downloads': approvedUsers.length - usersWithDownloads.size,
       '1-4 downloads': 0,
@@ -554,6 +540,21 @@ export async function GET() {
       else if (count >= 5 && count <= 14) downloadDistribution['5-14 downloads']++;
       else if (count >= 15 && count <= 29) downloadDistribution['15-29 downloads']++;
       else if (count >= 30) downloadDistribution['30+ downloads']++;
+    });
+
+    const behaviorCounts = {
+      bingeReaders: 0,
+      casualReaders: 0,
+      explorers: 0,
+      powerUsers: 0,
+      downloadDistribution,
+    };
+
+    userActivities.forEach(user => {
+      if (user.behaviorPattern === 'power_user') behaviorCounts.powerUsers++;
+      else if (user.behaviorPattern === 'binge_reader') behaviorCounts.bingeReaders++;
+      else if (user.behaviorPattern === 'explorer') behaviorCounts.explorers++;
+      else if (user.behaviorPattern === 'casual') behaviorCounts.casualReaders++;
     });
 
     // ============================================================
@@ -616,7 +617,7 @@ export async function GET() {
             const downloadDate = new Date(d.downloadedAt);
             return downloadDate >= startOfDay && downloadDate <= endOfDay;
           })
-          .map(d => (d as any).sessionId)
+          .map(d => d.sessionId)
           .filter(Boolean)
       ).size;
 
