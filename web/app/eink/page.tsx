@@ -453,32 +453,36 @@ export default function EinkHome() {
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '4px',
+              gap: '6px',
               fontSize: '15px',
               fontWeight: 500,
               letterSpacing: '0.2px',
               textAlign: 'center'
-            }}
-            className="md:flex-row md:gap-[10px]">
-              {encouragementMsg && (
-                <span>이번 달 {getThisMonthDownloads()}권 다운로드</span>
-              )}
-              {encouragementMsg && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>🎉</span>
-                  <span>{encouragementMsg}</span>
-                </div>
-              )}
-              {downloadStatus && (
-                <>
-                  {encouragementMsg && <span style={{ margin: '0 6px', opacity: 0.5 }}>|</span>}
+            }}>
+              {/* First Line: Downloads + New Books Status */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                {encouragementMsg && (
+                  <span>이번 달 {getThisMonthDownloads()}권 다운로드</span>
+                )}
+                {encouragementMsg && downloadStatus && (
+                  <span style={{ opacity: 0.5 }}>|</span>
+                )}
+                {downloadStatus && (
                   <span>
                     {downloadStatus.hours > 0
                       ? `${downloadStatus.hours}시간`
                       : `${downloadStatus.minutes}분`
                     } 후 신작 10권 입고
                   </span>
-                </>
+                )}
+              </div>
+
+              {/* Second Line: Encouragement Message */}
+              {encouragementMsg && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🎉</span>
+                  <span>{encouragementMsg}</span>
+                </div>
               )}
             </div>
           </div>
