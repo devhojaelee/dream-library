@@ -18,12 +18,9 @@ class DownloadStatusHandler(FileSystemEventHandler):
         self.last_processed_timestamp = None  # Track last processed timestamp
 
     def on_created(self, event):
-        # Trigger on download_status.json creation
-        if event.src_path.endswith('download_status.json'):
-            self.trigger_enrichment()
-
-    def on_modified(self, event):
-        # Also trigger on modification (in case file is updated)
+        # Trigger ONLY on download_status.json creation
+        # os.replace() generates both CREATE and MODIFY events
+        # We only need to respond to CREATE to avoid duplicate processing
         if event.src_path.endswith('download_status.json'):
             self.trigger_enrichment()
 
