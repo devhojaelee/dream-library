@@ -22,12 +22,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Build arguments for dynamic UID/GID (defaults for local development)
+ARG CONTAINER_UID=1001
+ARG CONTAINER_GID=1001
+
 # Install su-exec for user switching
 RUN apk add --no-cache su-exec
 
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
+# Create non-root user with dynamic UID/GID
+RUN addgroup --system --gid ${CONTAINER_GID} nodejs && \
+    adduser --system --uid ${CONTAINER_UID} nextjs
 
 # Copy built files from builder
 COPY --from=builder /app/public ./public

@@ -2,9 +2,17 @@ FROM alpine:3.18
 
 WORKDIR /app
 
+# Build arguments for dynamic UID/GID (defaults for local development)
+ARG CONTAINER_UID=1001
+ARG CONTAINER_GID=1001
+
 # Install bash and cron
 RUN apk add --no-cache bash tzdata && \
     rm -rf /var/cache/apk/*
+
+# Create non-root user with dynamic UID/GID
+RUN addgroup -g ${CONTAINER_GID} -S appgroup && \
+    adduser -u ${CONTAINER_UID} -S -G appgroup appuser
 
 # Copy backup script
 COPY backup_data.sh /app/
@@ -12,9 +20,15 @@ COPY backup_data.sh /app/
 # Make script executable
 RUN chmod +x /app/backup_data.sh
 
-# Create cron job to run at midnight every day (KST)
-RUN echo "0 0 * * * /app/backup_data.sh >> /var/log/backup-cron.log 2>&1" > /etc/crontabs/root && \
-    touch /var/log/backup-cron.log
+# Create log directory with proper permissions
+RUN mkdir -p /app/logs && \
+    chown -R appuser:appgroup /app
+
+# Create cron job for non-root user
+RUN echo "0 0 * * * /app/backup_data.sh >> /app/logs/backup-cron.log 2>&1" > /etc/crontabs/appuser
+
+# Switch to non-root user
+USER appuser
 
 # Run cron in foreground with initial execution
-CMD ["sh", "-c", "/app/backup_data.sh >> /var/log/backup-cron.log 2>&1 && crond -f -l 2"]
+CMD ["sh", "-c", "/app/backup_data.sh >> /app/logs/backup-cron.log 2>&1 && crond -f -l 2 -c /etc/crontabs"]

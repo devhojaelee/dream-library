@@ -1,25 +1,61 @@
 #!/bin/sh
 set -e
 
-# Fix ownership for mounted data directory
-if [ -d /app/data ]; then
-  echo "Fixing ownership for /app/data..."
-  chown -R nextjs:nodejs /app/data 2>&1 || echo "Warning: Could not fix /app/data ownership (non-critical)"
-fi
+echo "========================================"
+echo "Dream Library - Permission Validation"
+echo "========================================"
+echo ""
 
-# Fix ownership for mounted books directory (for existing files created by root)
-if [ -d /books ]; then
-  echo "Fixing ownership for /books..."
-  echo "This may take a while for large directories..."
+# Validate write permissions (fail-fast approach)
+validate_write_permission() {
+  local dir=$1
+  local test_file="${dir}/.write_test_$$"
 
-  # Try to fix ownership, but don't fail if it errors
-  if chown -R nextjs:nodejs /books 2>&1; then
-    echo "✅ Successfully fixed /books ownership"
-  else
-    echo "⚠️  Warning: Could not fix all /books ownership (will attempt to continue)"
-    echo "   Manual fix: sudo chown -R 1001:1001 /volume1/docker/dream-library/books"
+  if [ ! -d "$dir" ]; then
+    echo "❌ ERROR: Directory $dir does not exist"
+    return 1
   fi
+
+  if touch "$test_file" 2>/dev/null; then
+    rm -f "$test_file"
+    echo "✅ $dir - writable"
+    return 0
+  else
+    echo "❌ ERROR: $dir - not writable"
+    echo ""
+    echo "Fix with one of these methods:"
+    echo ""
+    echo "Method 1 (Synology ACL - Recommended):"
+    echo "  sudo synoacltool -add $(pwd)/$dir user::106808:allow:rwxpdDaARWc--:fd--"
+    echo ""
+    echo "Method 2 (POSIX permissions):"
+    echo "  sudo chown -R 106808:106808 $(pwd)/$dir"
+    echo ""
+    return 1
+  fi
+}
+
+# Validate directories
+echo "Validating mounted volumes..."
+echo ""
+
+VALIDATION_FAILED=0
+
+validate_write_permission "/app/data" || VALIDATION_FAILED=1
+validate_write_permission "/books" || VALIDATION_FAILED=1
+
+echo ""
+
+if [ $VALIDATION_FAILED -eq 1 ]; then
+  echo "❌ Permission validation failed"
+  echo "Container cannot start without write permissions"
+  exit 1
 fi
+
+echo "========================================"
+echo "✅ All validations passed"
+echo "========================================"
+echo ""
 
 # Execute the main command as nextjs user
 exec su-exec nextjs:nodejs "$@"

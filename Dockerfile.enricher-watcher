@@ -2,6 +2,10 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+# Build arguments for dynamic UID/GID (defaults for local development)
+ARG CONTAINER_UID=1001
+ARG CONTAINER_GID=1001
+
 # Install dependencies
 RUN pip install --no-cache-dir \
     requests \
@@ -10,9 +14,9 @@ RUN pip install --no-cache-dir \
     watchdog \
     python-dotenv
 
-# Create user with same uid as web container
-RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs nextjs
+# Create user with dynamic UID/GID
+RUN groupadd --system --gid ${CONTAINER_GID} nodejs && \
+    useradd --system --uid ${CONTAINER_UID} --gid nodejs nextjs
 
 # Copy scripts
 COPY enrich_metadata.py /app/
