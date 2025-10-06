@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 
 # 제외 키워드
 EXCLUDED = ['주식', '금융', '투자', '재테크', '경제학', '증권', '자본가', '자본',
-            '철학', 'philosophy', '예술', '미술', 'art']
+            'sex', '섹스']
 
 def should_exclude(title):
     """제외 대상 확인"""

@@ -265,6 +265,10 @@ class MetadataEnricher:
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 metadata = json.load(f)
 
+        # title이 없으면 파일명을 기본값으로 사용
+        if not metadata.get('title'):
+            metadata['title'] = title
+
         # 이미 시도했으면 스킵
         if metadata.get('enrichment_attempted'):
             print(f"⏭️  {title[:50]}... - 이미 보완 시도함")
@@ -329,6 +333,11 @@ class MetadataEnricher:
                 updated = True
 
         # 기타 메타데이터 보완
+        if book_info.get('title') and not metadata.get('title'):
+            metadata['title'] = book_info['title']
+            print(f"  ✅ 제목 추가: {metadata['title']}")
+            updated = True
+
         if book_info.get('author') and not metadata.get('author'):
             metadata['author'] = book_info['author']
             print(f"  ✅ 저자 추가: {metadata['author']}")
