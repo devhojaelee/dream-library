@@ -18,6 +18,8 @@ services:
       - EMAIL_USER=${EMAIL_USER:-hoje0711@naver.com}
       - EMAIL_PASSWORD=${EMAIL_PASSWORD:-DSENDBPW412N}
       - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
     restart: unless-stopped
     networks:
       - dream-library
