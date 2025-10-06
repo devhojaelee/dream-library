@@ -147,10 +147,22 @@ export default function BookDetail() {
       const newStatus = !isDownloaded;
       console.log('Toggling download status:', { bookId: book.id, newStatus });
 
+      // Collect tracking data (same as handleDownload)
+      const deviceType = detectDeviceType();
+      const uiMode = 'standard'; // This is the standard UI
+      const sessionId = getOrCreateSessionId();
+
       const res = await fetch('/api/download-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookId: book.id, status: newStatus }),
+        body: JSON.stringify({
+          bookId: book.id,
+          status: newStatus,
+          filename: book.filename,
+          deviceType,
+          uiMode,
+          sessionId,
+        }),
       });
 
       console.log('Response status:', res.status);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken, getDownloads } from '@/lib/auth';
+import { verifyToken, getDownloads, trackDownload, DeviceType, UIMode } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -65,28 +65,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
-    const { bookId, status } = await request.json();
-    console.log('[download-status] Processing:', { userId: payload.userId, bookId, status });
-
-    const DOWNLOADS_FILE = path.join(process.cwd(), 'data', 'downloads.json');
-    const downloads = getDownloads();
+    const { bookId, status, filename, deviceType, uiMode, sessionId } = await request.json();
+    console.log('[download-status] Processing:', { userId: payload.userId, bookId, status, deviceType, uiMode });
 
     if (status === true) {
-      // Add download
-      const existing = downloads.find(d => d.userId === payload.userId && d.bookId === bookId);
-      if (!existing) {
-        downloads.push({
-          userId: payload.userId,
-          bookId,
-          downloadedAt: new Date().toISOString(),
-        });
-        fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(downloads, null, 2));
-        console.log('[download-status] Download added');
-      } else {
-        console.log('[download-status] Download already exists');
+      // Add download with P1 enhanced tracking
+      const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
+
+      // Read book metadata if filename provided
+      let bookMetadata: { bookTitle?: string; bookAuthor?: string; genre?: string } = {};
+      if (filename) {
+        try {
+          const metadataFilename = filename.replace('.epub', '.json');
+          const metadataPath = path.join(booksDir, 'metadata', metadataFilename);
+
+          if (fs.existsSync(metadataPath)) {
+            const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
+            const metadata = JSON.parse(metadataContent);
+            bookMetadata = {
+              bookTitle: metadata.title,
+              bookAuthor: metadata.author,
+              genre: metadata.genre,
+            };
+          }
+        } catch (error) {
+          console.error('[download-status] Failed to read metadata:', error);
+        }
       }
+
+      // Use trackDownload for consistent P1 tracking
+      trackDownload(payload.userId, bookId, {
+        deviceType: deviceType as DeviceType | undefined,
+        uiMode: uiMode as UIMode | undefined,
+        sessionId: sessionId || undefined,
+        ...bookMetadata,
+      });
+      console.log('[download-status] Download tracked with P1 fields');
     } else {
       // Remove download
+      const DOWNLOADS_FILE = path.join(process.cwd(), 'data', 'downloads.json');
+      const downloads = getDownloads();
       const filtered = downloads.filter(d => !(d.userId === payload.userId && d.bookId === bookId));
       fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(filtered, null, 2));
       console.log('[download-status] Download removed, filtered count:', filtered.length);
