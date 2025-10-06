@@ -50,9 +50,6 @@ Thumbs.db
 # Test scripts
 test_scripts/
 
-# Sensitive files
-book_downloader.py  # Contains login credentials
-
 # Build files
 dist/
 build/
