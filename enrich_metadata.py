@@ -374,12 +374,39 @@ class MetadataEnricher:
         # covers 디렉토리 생성
         COVERS_DIR.mkdir(parents=True, exist_ok=True)
 
-        # EPUB 파일 목록 가져오기
-        epub_files = list(BOOKS_DIR.glob("*.epub"))
+        # Check for download_status.json to get list of newly downloaded files
+        status_path = BOOKS_DIR / "download_status.json"
+        target_titles = None
 
-        if not epub_files:
+        if status_path.exists():
+            try:
+                with open(status_path, 'r', encoding='utf-8') as f:
+                    status_data = json.load(f)
+                    if 'downloadedFiles' in status_data and status_data['downloadedFiles']:
+                        target_titles = set(status_data['downloadedFiles'])
+                        print(f"📋 Processing {len(target_titles)} newly downloaded files from download_status.json")
+                        print("=" * 60)
+            except Exception as e:
+                print(f"⚠️  Could not read download_status.json: {e}")
+                print("  → Processing all files instead")
+
+        # EPUB 파일 목록 가져오기
+        all_epub_files = list(BOOKS_DIR.glob("*.epub"))
+
+        if not all_epub_files:
             print("❌ EPUB 파일이 없습니다.")
             return
+
+        # Filter to only newly downloaded files if we have the list
+        if target_titles:
+            epub_files = [f for f in all_epub_files if f.stem in target_titles]
+            print(f"🎯 Found {len(epub_files)} matching files out of {len(all_epub_files)} total")
+            if len(epub_files) == 0:
+                print("⚠️  No matching files found - all may have been already processed")
+                return
+        else:
+            epub_files = all_epub_files
+            print(f"📚 Processing all {len(epub_files)} files (no download list found)")
 
         print(f"\n총 {len(epub_files)}개의 책을 처리합니다.\n")
 

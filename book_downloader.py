@@ -346,17 +346,19 @@ def download_incremental():
                                     print(f"  ⏰ Need to wait {wait_minutes}m = {total_wait_seconds}s")
 
                                 if total_wait_seconds > 0:
-                                    # Save download status for web UI
+                                    # Save download status for web UI and enricher
                                     wait_until = datetime.now() + timedelta(seconds=total_wait_seconds)
                                     status_data = {
                                         "waitUntil": wait_until.isoformat(),
-                                        "lastUpdate": datetime.now().isoformat()
+                                        "lastUpdate": datetime.now().isoformat(),
+                                        "downloadedFiles": list(downloaded_titles)  # List of downloaded book titles
                                     }
                                     status_path = "./books/download_status.json"
                                     try:
                                         with open(status_path, 'w', encoding='utf-8') as f:
                                             json.dump(status_data, f, ensure_ascii=False, indent=2)
                                         print(f"  📝 Saved download status: wait until {wait_until.strftime('%Y-%m-%d %H:%M:%S')}")
+                                        print(f"  📋 Tracked {len(downloaded_titles)} downloaded files for enrichment")
                                     except Exception as status_err:
                                         print(f"  ⚠️ Could not save status: {status_err}")
 
