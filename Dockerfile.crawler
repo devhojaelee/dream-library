@@ -8,6 +8,10 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create user with same uid as web container (before Playwright install)
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs --create-home nextjs
+
 # Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y \
     wget \
@@ -30,28 +34,25 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Playwright browsers (after pip install)
+# Install Playwright browsers as nextjs user (installs to /home/nextjs/.cache)
+# Must install browsers as the user that will run the script
+USER nextjs
 RUN python -m playwright install chromium
-# Skip font dependencies that are not available in Debian Trixie
+
+# Switch back to root for system-level Playwright deps
+USER root
 RUN python -m playwright install-deps chromium || true
 
-# Create user with same uid as web container
-RUN groupadd --system --gid 1001 nodejs && \
-    useradd --system --uid 1001 --gid nodejs nextjs
+# Copy crawler script with correct ownership
+COPY --chown=nextjs:nodejs book_downloader.py .
 
-# Copy crawler script
-COPY book_downloader.py .
+# Switch back to nextjs
+USER nextjs
 
 # Create books directory
 RUN mkdir -p /app/books/covers /app/books/metadata
 
-# Set ownership
-RUN chown -R nextjs:nodejs /app
-
 # Volume mount point
 VOLUME ["/app/books"]
-
-# Run as non-root user
-USER nextjs
 
 CMD ["python", "book_downloader.py"]
