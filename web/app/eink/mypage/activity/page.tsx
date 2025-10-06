@@ -419,123 +419,123 @@ export default function EinkActivityPage() {
         </div>
       ) : (
         <>
-          {/* KPI Cards */}
+          {/* KPI Cards - 1x4 Grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '12px',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '10px',
             marginBottom: '20px'
           }}>
-            <div className="eink-card" style={{ padding: '12px' }}>
+            <div className="eink-card" style={{ padding: '16px 12px' }}>
               <div style={{
-                fontSize: '11px',
+                fontSize: '13px',
                 fontWeight: 700,
-                marginBottom: '6px',
+                marginBottom: '8px',
                 color: '#666666',
-                letterSpacing: '0.8px',
+                letterSpacing: '0.5px',
                 textTransform: 'uppercase'
               }}>
                 총 다운로드
               </div>
               <div style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 fontWeight: 700,
                 letterSpacing: '-0.5px',
-                marginBottom: '2px'
+                marginBottom: '4px'
               }}>
-                {downloads.length}권
+                {downloads.length}
               </div>
               <div style={{
-                fontSize: '11px',
+                fontSize: '14px',
                 color: '#666666',
-                letterSpacing: '0.2px',
+                letterSpacing: '0.1px',
                 fontWeight: 600
               }}>
-                전체 기간
+                전체
               </div>
             </div>
 
-            <div className="eink-card" style={{ padding: '12px' }}>
+            <div className="eink-card" style={{ padding: '16px 12px' }}>
               <div style={{
-                fontSize: '11px',
+                fontSize: '13px',
                 fontWeight: 700,
-                marginBottom: '6px',
+                marginBottom: '8px',
                 color: '#666666',
-                letterSpacing: '0.8px',
+                letterSpacing: '0.5px',
                 textTransform: 'uppercase'
               }}>
                 이번 달
               </div>
               <div style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 fontWeight: 700,
                 letterSpacing: '-0.5px',
-                marginBottom: '2px'
+                marginBottom: '4px'
               }}>
-                {getThisMonthCount()}권
+                {getThisMonthCount()}
               </div>
               <div style={{
-                fontSize: '11px',
+                fontSize: '14px',
                 color: '#666666',
-                letterSpacing: '0.2px',
+                letterSpacing: '0.1px',
                 fontWeight: 600
               }}>
-                {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })}
+                {new Date().getMonth() + 1}월
               </div>
             </div>
 
-            <div className="eink-card" style={{ padding: '12px' }}>
+            <div className="eink-card" style={{ padding: '16px 12px' }}>
               <div style={{
-                fontSize: '11px',
+                fontSize: '13px',
                 fontWeight: 700,
-                marginBottom: '6px',
+                marginBottom: '8px',
                 color: '#666666',
-                letterSpacing: '0.8px',
+                letterSpacing: '0.5px',
                 textTransform: 'uppercase'
               }}>
                 월평균
               </div>
               <div style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 fontWeight: 700,
                 letterSpacing: '-0.5px',
-                marginBottom: '2px'
+                marginBottom: '4px'
               }}>
-                {avgMonthly}권
+                {avgMonthly}
               </div>
               <div style={{
-                fontSize: '11px',
+                fontSize: '14px',
                 color: '#666666',
-                letterSpacing: '0.2px',
+                letterSpacing: '0.1px',
                 fontWeight: 600
               }}>
                 권/월
               </div>
             </div>
 
-            <div className="eink-card" style={{ padding: '12px' }}>
+            <div className="eink-card" style={{ padding: '16px 12px' }}>
               <div style={{
-                fontSize: '11px',
+                fontSize: '13px',
                 fontWeight: 700,
-                marginBottom: '6px',
+                marginBottom: '8px',
                 color: '#666666',
-                letterSpacing: '0.8px',
+                letterSpacing: '0.5px',
                 textTransform: 'uppercase'
               }}>
                 최다 다운로드
               </div>
               <div style={{
-                fontSize: '28px',
+                fontSize: '32px',
                 fontWeight: 700,
                 letterSpacing: '-0.5px',
-                marginBottom: '2px'
+                marginBottom: '4px'
               }}>
-                {mostActiveMonth.count}권
+                {mostActiveMonth.count}
               </div>
               <div style={{
-                fontSize: '11px',
+                fontSize: '14px',
                 color: '#666666',
-                letterSpacing: '0.2px',
+                letterSpacing: '0.1px',
                 fontWeight: 600
               }}>
                 {mostActiveMonth.displayMonth || '-'}
@@ -545,12 +545,12 @@ export default function EinkActivityPage() {
 
           {/* Chart with Toggle */}
           <div className="eink-card" style={{
-            padding: '16px'
+            padding: '20px'
           }}>
             <h3 style={{
-              fontSize: '16px',
+              fontSize: '20px',
               fontWeight: 700,
-              marginBottom: '16px',
+              marginBottom: '20px',
               letterSpacing: '-0.2px'
             }}>
               독서 여정
@@ -560,32 +560,32 @@ export default function EinkActivityPage() {
             <div style={{
               background: '#000000',
               color: '#ffffff',
-              border: '2px solid #000000',
-              borderRadius: '6px',
-              padding: '16px',
-              marginBottom: '16px',
+              border: '3px solid #000000',
+              borderRadius: '8px',
+              padding: '20px',
+              marginBottom: '20px',
               textAlign: 'center'
             }}>
               <div style={{
-                fontSize: '11px',
+                fontSize: '14px',
                 fontWeight: 700,
                 letterSpacing: '0.8px',
                 textTransform: 'uppercase',
-                marginBottom: '8px',
+                marginBottom: '10px',
                 opacity: 0.8
               }}>
                 달성한 마일스톤
               </div>
               <div style={{
-                fontSize: '32px',
+                fontSize: '40px',
                 fontWeight: 700,
                 letterSpacing: '-0.5px',
-                marginBottom: '4px'
+                marginBottom: '6px'
               }}>
                 {milestones.filter(m => m.achieved).length} / {milestones.length}
               </div>
               <div style={{
-                fontSize: '13px',
+                fontSize: '16px',
                 fontWeight: 700,
                 letterSpacing: '0.2px'
               }}>
@@ -602,17 +602,17 @@ export default function EinkActivityPage() {
             {nextMilestone && (
               <div style={{
                 background: '#f0f0f0',
-                border: '2px solid #cccccc',
-                borderRadius: '6px',
-                padding: '16px',
-                marginBottom: '16px'
+                border: '3px solid #cccccc',
+                borderRadius: '8px',
+                padding: '20px',
+                marginBottom: '20px'
               }}>
                 <div style={{
-                  fontSize: '12px',
+                  fontSize: '15px',
                   fontWeight: 700,
                   letterSpacing: '0.8px',
                   textTransform: 'uppercase',
-                  marginBottom: '10px',
+                  marginBottom: '12px',
                   textAlign: 'center'
                 }}>
                   ⚡ 다음 도전
@@ -621,19 +621,19 @@ export default function EinkActivityPage() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-end',
-                  marginBottom: '12px'
+                  marginBottom: '14px'
                 }}>
                   <div>
                     <div style={{
-                      fontSize: '20px',
+                      fontSize: '24px',
                       fontWeight: 700,
                       letterSpacing: '0.2px',
-                      marginBottom: '2px'
+                      marginBottom: '4px'
                     }}>
                       {nextMilestone.title}
                     </div>
                     <div style={{
-                      fontSize: '11px',
+                      fontSize: '14px',
                       color: '#666666',
                       fontWeight: 600,
                       letterSpacing: '0.2px'
@@ -643,7 +643,7 @@ export default function EinkActivityPage() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{
-                      fontSize: '28px',
+                      fontSize: '32px',
                       fontWeight: 700,
                       letterSpacing: '-0.5px',
                       lineHeight: 1
@@ -651,7 +651,7 @@ export default function EinkActivityPage() {
                       {nextMilestone.remaining}
                     </div>
                     <div style={{
-                      fontSize: '12px',
+                      fontSize: '14px',
                       fontWeight: 700,
                       letterSpacing: '0.2px'
                     }}>
@@ -661,9 +661,9 @@ export default function EinkActivityPage() {
                 </div>
                 <div style={{
                   background: '#cccccc',
-                  border: '2px solid #000000',
-                  height: '16px',
-                  borderRadius: '8px',
+                  border: '3px solid #000000',
+                  height: '20px',
+                  borderRadius: '10px',
                   overflow: 'hidden',
                   position: 'relative'
                 }}>
@@ -678,17 +678,17 @@ export default function EinkActivityPage() {
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  marginTop: '8px'
+                  marginTop: '10px'
                 }}>
                   <div style={{
-                    fontSize: '11px',
+                    fontSize: '14px',
                     fontWeight: 700,
                     letterSpacing: '0.2px'
                   }}>
                     {downloads.length}권 완료
                   </div>
                   <div style={{
-                    fontSize: '11px',
+                    fontSize: '14px',
                     fontWeight: 700,
                     letterSpacing: '0.2px'
                   }}>
@@ -703,14 +703,14 @@ export default function EinkActivityPage() {
               <div style={{
                 background: '#000000',
                 color: '#ffffff',
-                border: '2px solid #000000',
-                borderRadius: '6px',
-                padding: '12px',
-                marginBottom: '16px',
+                border: '3px solid #000000',
+                borderRadius: '8px',
+                padding: '16px',
+                marginBottom: '20px',
                 textAlign: 'center'
               }}>
                 <div style={{
-                  fontSize: '14px',
+                  fontSize: '16px',
                   fontWeight: 700,
                   letterSpacing: '0.2px'
                 }}>
@@ -739,43 +739,43 @@ export default function EinkActivityPage() {
                     <div
                       key={milestone.target}
                       style={{
-                        border: milestone.achieved ? '2px solid #000000' : '1px solid #cccccc',
+                        border: milestone.achieved ? '3px solid #000000' : '2px solid #cccccc',
                         background: milestone.achieved ? '#000000' : '#f8f8f8',
                         color: milestone.achieved ? '#ffffff' : '#999999',
-                        padding: '10px 6px',
+                        padding: '14px 8px',
                         textAlign: 'center',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         position: 'relative'
                       }}
                     >
                       {milestone.achieved && (
                         <div style={{
                           position: 'absolute',
-                          top: '4px',
-                          right: '4px',
-                          fontSize: '10px'
+                          top: '6px',
+                          right: '6px',
+                          fontSize: '14px'
                         }}>
                           ✓
                         </div>
                       )}
                       <div style={{
-                        fontSize: '10px',
+                        fontSize: '13px',
                         fontWeight: 700,
-                        marginBottom: '3px',
+                        marginBottom: '4px',
                         letterSpacing: '0.2px'
                       }}>
                         {actualIndex + 1}단계
                       </div>
                       <div style={{
-                        fontSize: '16px',
+                        fontSize: '20px',
                         fontWeight: 700,
                         letterSpacing: '0.1px',
-                        marginBottom: '2px'
+                        marginBottom: '4px'
                       }}>
                         {milestone.target}
                       </div>
                       <div style={{
-                        fontSize: '9px',
+                        fontSize: '12px',
                         fontWeight: 600,
                         letterSpacing: '0.2px'
                       }}>
@@ -791,25 +791,25 @@ export default function EinkActivityPage() {
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '8px',
-              paddingTop: '16px',
-              borderTop: '2px solid #cccccc'
+              gap: '10px',
+              paddingTop: '20px',
+              borderTop: '3px solid #cccccc'
             }}>
               <div style={{
                 textAlign: 'center',
-                padding: '10px'
+                padding: '12px'
               }}>
                 <div style={{
-                  fontSize: '10px',
+                  fontSize: '13px',
                   color: '#666666',
                   fontWeight: 600,
-                  marginBottom: '4px',
+                  marginBottom: '6px',
                   letterSpacing: '0.2px'
                 }}>
                   월평균 페이스
                 </div>
                 <div style={{
-                  fontSize: '20px',
+                  fontSize: '24px',
                   fontWeight: 700,
                   letterSpacing: '-0.3px'
                 }}>
@@ -818,19 +818,19 @@ export default function EinkActivityPage() {
               </div>
               <div style={{
                 textAlign: 'center',
-                padding: '10px'
+                padding: '12px'
               }}>
                 <div style={{
-                  fontSize: '10px',
+                  fontSize: '13px',
                   color: '#666666',
                   fontWeight: 600,
-                  marginBottom: '4px',
+                  marginBottom: '6px',
                   letterSpacing: '0.2px'
                 }}>
                   {nextMilestone ? `${nextMilestone.title}까지` : '총 달성'}
                 </div>
                 <div style={{
-                  fontSize: '20px',
+                  fontSize: '24px',
                   fontWeight: 700,
                   letterSpacing: '-0.3px'
                 }}>
@@ -880,24 +880,24 @@ export default function EinkActivityPage() {
 
           {authorStats.length > 0 && (
             <div className="eink-card" style={{
-              padding: '16px',
+              padding: '20px',
               marginBottom: '20px'
             }}>
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: '16px'
+                marginBottom: '20px'
               }}>
                 <h3 style={{
-                  fontSize: '16px',
+                  fontSize: '20px',
                   fontWeight: 700,
                   letterSpacing: '-0.2px'
                 }}>
                   저자 TOP 5
                 </h3>
                 <div style={{
-                  fontSize: '11px',
+                  fontSize: '13px',
                   color: '#666666',
                   letterSpacing: '0.2px'
                 }}>
@@ -908,25 +908,25 @@ export default function EinkActivityPage() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '12px'
+                gap: '14px'
               }}>
                 {authorStats.map((data, index) => (
                   <div key={data.author}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
-                      marginBottom: '6px'
+                      gap: '12px',
+                      marginBottom: '8px'
                     }}>
                       <div style={{
-                        width: '24px',
-                        height: '24px',
-                        border: '2px solid #000000',
+                        width: '30px',
+                        height: '30px',
+                        border: '3px solid #000000',
                         borderRadius: '50%',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '11px',
+                        fontSize: '14px',
                         fontWeight: 700,
                         flexShrink: 0
                       }}>
@@ -934,7 +934,7 @@ export default function EinkActivityPage() {
                       </div>
                       <div style={{
                         flex: 1,
-                        fontSize: '13px',
+                        fontSize: '16px',
                         fontWeight: 600,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -944,7 +944,7 @@ export default function EinkActivityPage() {
                         {data.author}
                       </div>
                       <div style={{
-                        fontSize: '13px',
+                        fontSize: '16px',
                         fontWeight: 700,
                         letterSpacing: '0.2px',
                         flexShrink: 0
@@ -952,11 +952,11 @@ export default function EinkActivityPage() {
                         {data.count}권
                       </div>
                       <div style={{
-                        fontSize: '11px',
+                        fontSize: '13px',
                         color: '#666666',
                         letterSpacing: '0.2px',
                         flexShrink: 0,
-                        width: '40px',
+                        width: '48px',
                         textAlign: 'right'
                       }}>
                         {((data.count / downloads.length) * 100).toFixed(1)}%
@@ -964,9 +964,9 @@ export default function EinkActivityPage() {
                     </div>
                     <div style={{
                       background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '10px',
-                      borderRadius: '5px',
+                      border: '2px solid #999999',
+                      height: '14px',
+                      borderRadius: '7px',
                       overflow: 'hidden'
                     }}>
                       <div
@@ -985,23 +985,23 @@ export default function EinkActivityPage() {
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '10px',
-                marginTop: '16px',
-                paddingTop: '16px',
-                borderTop: '2px solid #cccccc'
+                gap: '12px',
+                marginTop: '20px',
+                paddingTop: '20px',
+                borderTop: '3px solid #cccccc'
               }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
-                    fontSize: '10px',
+                    fontSize: '13px',
                     color: '#666666',
-                    marginBottom: '4px',
+                    marginBottom: '6px',
                     fontWeight: 600,
                     letterSpacing: '0.2px'
                   }}>
                     1위 저자
                   </div>
                   <div style={{
-                    fontSize: '12px',
+                    fontSize: '15px',
                     fontWeight: 700,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -1013,16 +1013,16 @@ export default function EinkActivityPage() {
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
-                    fontSize: '10px',
+                    fontSize: '13px',
                     color: '#666666',
-                    marginBottom: '4px',
+                    marginBottom: '6px',
                     fontWeight: 600,
                     letterSpacing: '0.2px'
                   }}>
                     1위 다운로드
                   </div>
                   <div style={{
-                    fontSize: '12px',
+                    fontSize: '15px',
                     fontWeight: 700,
                     letterSpacing: '0.1px'
                   }}>
@@ -1031,16 +1031,16 @@ export default function EinkActivityPage() {
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{
-                    fontSize: '10px',
+                    fontSize: '13px',
                     color: '#666666',
-                    marginBottom: '4px',
+                    marginBottom: '6px',
                     fontWeight: 600,
                     letterSpacing: '0.2px'
                   }}>
                     1위 비중
                   </div>
                   <div style={{
-                    fontSize: '12px',
+                    fontSize: '15px',
                     fontWeight: 700,
                     letterSpacing: '0.1px'
                   }}>
@@ -1054,17 +1054,17 @@ export default function EinkActivityPage() {
           {/* Milestones */}
 
           <div className="eink-card" style={{
-            padding: '16px',
+            padding: '20px',
             marginBottom: '20px'
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: '16px'
+              marginBottom: '20px'
             }}>
               <h3 style={{
-                fontSize: '16px',
+                fontSize: '20px',
                 fontWeight: 700,
                 letterSpacing: '-0.2px'
               }}>
@@ -1072,21 +1072,21 @@ export default function EinkActivityPage() {
               </h3>
               <div style={{
                 display: 'flex',
-                gap: '4px',
-                border: '2px solid #000000',
-                padding: '2px',
-                borderRadius: '4px'
+                gap: '6px',
+                border: '3px solid #000000',
+                padding: '4px',
+                borderRadius: '6px'
               }}>
                 <button
                   onClick={() => setChartType('monthly')}
                   style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
                     fontWeight: 700,
                     background: chartType === 'monthly' ? '#000000' : 'transparent',
                     color: chartType === 'monthly' ? '#ffffff' : '#000000',
                     border: 'none',
-                    borderRadius: '2px',
+                    borderRadius: '4px',
                     cursor: 'pointer',
                     letterSpacing: '0.2px'
                   }}
@@ -1096,8 +1096,8 @@ export default function EinkActivityPage() {
                 <button
                   onClick={() => setChartType('yearly')}
                   style={{
-                    padding: '6px 12px',
-                    fontSize: '12px',
+                    padding: '8px 16px',
+                    fontSize: '14px',
                     fontWeight: 700,
                     background: chartType === 'yearly' ? '#000000' : 'transparent',
                     color: chartType === 'yearly' ? '#ffffff' : '#000000',
@@ -1116,17 +1116,17 @@ export default function EinkActivityPage() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px'
+                gap: '10px'
               }}>
                 {monthlyData.map((data) => (
                   <div key={data.month} style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px'
+                    gap: '12px'
                   }}>
                     <div style={{
-                      width: '70px',
-                      fontSize: '12px',
+                      width: '80px',
+                      fontSize: '14px',
                       fontWeight: 600,
                       letterSpacing: '0.1px',
                       flexShrink: 0
@@ -1136,10 +1136,10 @@ export default function EinkActivityPage() {
                     <div style={{
                       flex: 1,
                       background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '28px',
+                      border: '2px solid #999999',
+                      height: '34px',
                       position: 'relative',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
                       overflow: 'hidden'
                     }}>
                       <div
@@ -1150,13 +1150,13 @@ export default function EinkActivityPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'flex-end',
-                          padding: '0 8px'
+                          padding: '0 10px'
                         }}
                       >
                         {data.count > 0 && (
                           <span style={{
                             color: '#ffffff',
-                            fontSize: '12px',
+                            fontSize: '14px',
                             fontWeight: 700,
                             letterSpacing: '0.2px'
                           }}>
@@ -1172,17 +1172,17 @@ export default function EinkActivityPage() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '10px'
+                gap: '12px'
               }}>
                 {yearlyData.map((data) => (
                   <div key={data.year} style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px'
+                    gap: '12px'
                   }}>
                     <div style={{
-                      width: '70px',
-                      fontSize: '13px',
+                      width: '80px',
+                      fontSize: '16px',
                       fontWeight: 700,
                       letterSpacing: '0.1px',
                       flexShrink: 0
@@ -1192,10 +1192,10 @@ export default function EinkActivityPage() {
                     <div style={{
                       flex: 1,
                       background: '#e0e0e0',
-                      border: '1px solid #999999',
-                      height: '32px',
+                      border: '2px solid #999999',
+                      height: '38px',
                       position: 'relative',
-                      borderRadius: '4px',
+                      borderRadius: '6px',
                       overflow: 'hidden'
                     }}>
                       <div
@@ -1206,12 +1206,12 @@ export default function EinkActivityPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'flex-end',
-                          padding: '0 10px'
+                          padding: '0 12px'
                         }}
                       >
                         <span style={{
                           color: '#ffffff',
-                          fontSize: '14px',
+                          fontSize: '16px',
                           fontWeight: 700,
                           letterSpacing: '0.2px'
                         }}>
