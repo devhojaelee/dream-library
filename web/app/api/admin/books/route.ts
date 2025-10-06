@@ -8,6 +8,15 @@ export async function GET() {
     const metadataDir = path.join(booksDir, 'metadata');
     const coversDir = path.join(booksDir, 'covers');
 
+    // Load review status from writable data directory
+    const dataDir = path.join(process.cwd(), 'data');
+    const reviewStatusPath = path.join(dataDir, 'review_status.json');
+    let reviewStatus: Record<string, boolean> = {};
+    if (fs.existsSync(reviewStatusPath)) {
+      const content = fs.readFileSync(reviewStatusPath, 'utf-8');
+      reviewStatus = JSON.parse(content);
+    }
+
     if (!fs.existsSync(booksDir)) {
       return NextResponse.json({ books: [] });
     }
@@ -37,7 +46,7 @@ export async function GET() {
         description: metadata.description || null,
         cover: metadata.cover || null,
         coverUpdated: metadata.cover_updated || null,
-        needsReview: metadata.needs_review || false,
+        needsReview: reviewStatus[filename] || false, // Use review_status.json instead of metadata
         size: stats.size,
         addedDate: stats.birthtime,
         metadataPath: fs.existsSync(metadataPath) ? metadataPath : null,
