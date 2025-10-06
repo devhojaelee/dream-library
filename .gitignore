@@ -12,10 +12,12 @@ books/*.epub
 books/covers/*
 books/metadata/*
 download_log.txt
+books/download_status.json
 
 # User data
 web/data/users.json
 web/data/downloads.json
+web/data/review_status.json
 
 # Development files
 dev/
