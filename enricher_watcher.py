@@ -7,12 +7,14 @@ Triggers metadata enrichment 5 minutes after download limit is detected
 import time
 import subprocess
 import os
+import json
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 class DownloadStatusHandler(FileSystemEventHandler):
     def __init__(self):
         self.processing = False
+        self.last_processed_timestamp = None  # Track last processed timestamp
 
     def on_created(self, event):
         # Trigger on download_status.json creation
@@ -28,6 +30,23 @@ class DownloadStatusHandler(FileSystemEventHandler):
         if self.processing:
             print("⏭️  Already processing, skipping duplicate trigger")
             return
+
+        # Check if this is a duplicate trigger (same timestamp)
+        status_file = '/app/books/download_status.json'
+        try:
+            with open(status_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                current_timestamp = data.get('waitUntil')
+
+                if current_timestamp == self.last_processed_timestamp:
+                    print(f"⏭️  Already processed timestamp {current_timestamp}, ignoring")
+                    return
+
+                # Update last processed timestamp
+                self.last_processed_timestamp = current_timestamp
+        except Exception as e:
+            print(f"⚠️  Could not read status file: {e}")
+            # Continue anyway if file read fails
 
         self.processing = True
         try:
