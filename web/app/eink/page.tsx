@@ -41,6 +41,7 @@ export default function EinkHome() {
   const [downloadStatus, setDownloadStatus] = useState<{ hours: number; minutes: number; seconds: number } | null>(null);
   const [showRecentOnly, setShowRecentOnly] = useState(false);
   const [booksPerPage, setBooksPerPage] = useState(10);
+  const [autoLoadEnabled, setAutoLoadEnabled] = useState(true);
   const router = useRouter();
 
   // Fisher-Yates shuffle algorithm
@@ -55,9 +56,10 @@ export default function EinkHome() {
 
   // Calculate columns and adjust books per page for E-ink (simpler grid)
   const calculateBooksPerPage = useCallback(() => {
-    if (typeof window === 'undefined') return 10;
+    if (typeof window === 'undefined') return 20;
 
     const width = window.innerWidth;
+    const height = window.innerHeight;
     let columns = 2; // default
 
     if (width >= 1024) columns = 5; // large screens
@@ -66,8 +68,22 @@ export default function EinkHome() {
     else if (width >= 360) columns = 3; // 6-8인치 액정 (360px 이상)
     else columns = 2; // small phones
 
-    const rows = 3; // Show ~3 rows for E-ink (less scrolling)
-    const booksToShow = columns * rows;
+    // Calculate rows based on viewport height
+    // Approximate: 280px per book card (240px card + 40px gap/margin)
+    const headerHeight = 200; // approximate header + banner + search + title
+    const availableHeight = height - headerHeight;
+    const estimatedRows = Math.max(Math.floor(availableHeight / 280), 3);
+
+    let booksToShow = columns * estimatedRows;
+
+    // Ensure minimum books based on screen size
+    if (width >= 1024) {
+      // PC: minimum 20 books
+      booksToShow = Math.max(booksToShow, 20);
+    } else {
+      // Mobile/Tablet: minimum 10 books
+      booksToShow = Math.max(booksToShow, 10);
+    }
 
     setBooksPerPage(booksToShow);
     return booksToShow;
@@ -149,6 +165,33 @@ export default function EinkHome() {
       });
   }, []);
 
+  // Auto-load more books if there's empty space
+  useEffect(() => {
+    if (!autoLoadEnabled || displayedBooks.length === 0) return;
+
+    const checkAndLoadMore = () => {
+      const contentHeight = document.documentElement.scrollHeight;
+      const viewportHeight = window.innerHeight;
+      const hasEmptySpace = contentHeight < viewportHeight;
+
+      // If there's empty space and more books available, load more
+      const filteredBooks = getFilteredBooks();
+      const hasMore = displayedBooks.length < filteredBooks.length;
+
+      if (hasEmptySpace && hasMore) {
+        const nextBatch = filteredBooks.slice(0, displayedBooks.length + booksPerPage);
+        setDisplayedBooks(nextBatch);
+      } else {
+        // Stop auto-loading once filled
+        setAutoLoadEnabled(false);
+      }
+    };
+
+    // Small delay to ensure DOM is updated
+    const timer = setTimeout(checkAndLoadMore, 100);
+    return () => clearTimeout(timer);
+  }, [displayedBooks, booksPerPage, autoLoadEnabled]);
+
   // Filter books based on hideDownloaded, search query, and showRecentOnly
   useEffect(() => {
     let filteredBooks = allBooks;
@@ -182,6 +225,7 @@ export default function EinkHome() {
 
     setDisplayedBooks(filteredBooks.slice(0, booksPerPage));
     setPage(1);
+    setAutoLoadEnabled(true); // Re-enable auto-load when filters change
   }, [hideDownloaded, allBooks, user, searchQuery, showRecentOnly, booksPerPage]);
 
   const handleLogout = async () => {
@@ -236,6 +280,7 @@ export default function EinkHome() {
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(nextPage);
+    setAutoLoadEnabled(true); // Re-enable auto-load for new page
     window.scrollTo(0, 0);
   };
 
@@ -250,6 +295,7 @@ export default function EinkHome() {
     const newBooks = filteredBooks.slice(startIndex, endIndex);
     setDisplayedBooks(newBooks);
     setPage(prevPage);
+    setAutoLoadEnabled(true); // Re-enable auto-load for new page
     window.scrollTo(0, 0);
   };
 
