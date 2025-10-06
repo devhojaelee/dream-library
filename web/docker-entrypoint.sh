@@ -7,5 +7,11 @@ if [ -d /app/data ]; then
   chown -R nextjs:nodejs /app/data
 fi
 
+# Fix ownership for mounted books directory (for existing files created by root)
+if [ -d /books ]; then
+  echo "Fixing ownership for /books..."
+  chown -R nextjs:nodejs /books
+fi
+
 # Execute the main command as nextjs user
 exec su-exec nextjs:nodejs "$@"

@@ -10,9 +10,19 @@ RUN pip install --no-cache-dir \
     watchdog \
     python-dotenv
 
+# Create user with same uid as web container
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nextjs
+
 # Copy scripts
 COPY enrich_metadata.py /app/
 COPY enricher_watcher.py /app/
+
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+
+# Run as non-root user
+USER nextjs
 
 # Run watcher
 CMD ["python", "enricher_watcher.py"]

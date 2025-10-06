@@ -8,8 +8,18 @@ RUN pip install --no-cache-dir \
     beautifulsoup4 \
     pillow
 
+# Create user with same uid as web container
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nextjs
+
 # Copy enrichment script
 COPY enrich_metadata.py /app/
+
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+
+# Run as non-root user
+USER nextjs
 
 # Run enrichment script
 CMD ["python", "enrich_metadata.py"]

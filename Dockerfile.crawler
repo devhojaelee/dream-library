@@ -35,13 +35,23 @@ RUN python -m playwright install chromium
 # Skip font dependencies that are not available in Debian Trixie
 RUN python -m playwright install-deps chromium || true
 
+# Create user with same uid as web container
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 --gid nodejs nextjs
+
 # Copy crawler script
 COPY book_downloader.py .
 
 # Create books directory
 RUN mkdir -p /app/books/covers /app/books/metadata
 
+# Set ownership
+RUN chown -R nextjs:nodejs /app
+
 # Volume mount point
 VOLUME ["/app/books"]
+
+# Run as non-root user
+USER nextjs
 
 CMD ["python", "book_downloader.py"]
