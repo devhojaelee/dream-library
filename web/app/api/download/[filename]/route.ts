@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { verifyToken, trackDownload } from '@/lib/auth';
+import { verifyToken, trackDownload, DeviceType, UIMode } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -21,6 +21,10 @@ export async function GET(
 
     const { filename } = await params;
     const bookId = request.nextUrl.searchParams.get('bookId');
+    const deviceType = request.nextUrl.searchParams.get('deviceType') as DeviceType | null;
+    const uiMode = request.nextUrl.searchParams.get('uiMode') as UIMode | null;
+    const sessionId = request.nextUrl.searchParams.get('sessionId');
+
     const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
     const filepath = path.join(booksDir, filename);
 
@@ -29,9 +33,34 @@ export async function GET(
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    // 다운로드 추적
+    // 다운로드 추적 with enhanced metadata
     if (bookId) {
-      trackDownload(payload.userId, parseInt(bookId));
+      // Read book metadata if available
+      let bookMetadata: { title?: string; author?: string; genre?: string } = {};
+      try {
+        const metadataFilename = filename.replace('.epub', '.json');
+        const metadataPath = path.join(booksDir, 'metadata', metadataFilename);
+
+        if (fs.existsSync(metadataPath)) {
+          const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
+          const metadata = JSON.parse(metadataContent);
+          bookMetadata = {
+            bookTitle: metadata.title,
+            bookAuthor: metadata.author,
+            genre: metadata.genre,
+          };
+        }
+      } catch (error) {
+        console.error('Failed to read book metadata:', error);
+        // Continue without metadata
+      }
+
+      trackDownload(payload.userId, parseInt(bookId), {
+        deviceType: deviceType || undefined,
+        uiMode: uiMode || undefined,
+        sessionId: sessionId || undefined,
+        ...bookMetadata,
+      });
     }
 
     // 파일 읽기

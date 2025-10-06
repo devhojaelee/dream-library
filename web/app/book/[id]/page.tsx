@@ -74,9 +74,61 @@ export default function BookDetail() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
+  // Enhanced tracking utilities
+  const detectDeviceType = (): string => {
+    if (typeof window === 'undefined') return 'desktop';
+
+    const ua = navigator.userAgent.toLowerCase();
+
+    // Check for E-ink devices
+    if (ua.includes('kindle') || ua.includes('kobo') || ua.includes('boox') || ua.includes('remarkable')) {
+      return 'eink';
+    }
+
+    // Check for tablets
+    if (ua.includes('ipad') || (ua.includes('android') && !ua.includes('mobile'))) {
+      return 'tablet';
+    }
+
+    // Check for mobile
+    if (ua.includes('mobile') || ua.includes('iphone') || ua.includes('android')) {
+      return 'mobile';
+    }
+
+    return 'desktop';
+  };
+
+  const getOrCreateSessionId = (): string => {
+    if (typeof window === 'undefined') return '';
+
+    const SESSION_KEY = 'dream_library_session_id';
+    let sessionId = sessionStorage.getItem(SESSION_KEY);
+
+    if (!sessionId) {
+      sessionId = crypto.randomUUID();
+      sessionStorage.setItem(SESSION_KEY, sessionId);
+    }
+
+    return sessionId;
+  };
+
   const handleDownload = () => {
     if (book) {
-      window.location.href = `/api/download/${encodeURIComponent(book.filename)}?bookId=${book.id}`;
+      // Collect tracking data
+      const deviceType = detectDeviceType();
+      const uiMode = 'standard'; // This is the standard UI
+      const sessionId = getOrCreateSessionId();
+
+      // Build URL with tracking params
+      const params = new URLSearchParams({
+        bookId: book.id.toString(),
+        deviceType,
+        uiMode,
+        sessionId,
+      });
+
+      window.location.href = `/api/download/${encodeURIComponent(book.filename)}?${params.toString()}`;
+
       // Refresh page after download to update status
       setTimeout(() => {
         router.refresh();

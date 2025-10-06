@@ -7,6 +7,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 const USERS_FILE = path.join(process.cwd(), 'data', 'users.json');
 const DOWNLOADS_FILE = path.join(process.cwd(), 'data', 'downloads.json');
 
+// Enhanced tracking types
+export type DeviceType = 'desktop' | 'mobile' | 'tablet' | 'eink';
+export type UIMode = 'standard' | 'eink';
+
 interface User {
   id: string;
   username: string;
@@ -15,12 +19,23 @@ interface User {
   approved: boolean;
   role: 'user' | 'admin';
   createdAt: string;
+  // Enhanced engagement tracking
+  lastLogin?: string;
+  totalSessionDuration?: number; // in seconds
 }
 
 interface UserDownload {
   userId: string;
   bookId: number;
   downloadedAt: string;
+  // Enhanced tracking fields
+  deviceType?: DeviceType;
+  uiMode?: UIMode;
+  sessionId?: string;
+  // Book metadata for analytics
+  bookTitle?: string;
+  bookAuthor?: string;
+  genre?: string;
 }
 
 // Ensure data directory exists
@@ -121,8 +136,38 @@ const saveDownloads = (downloads: UserDownload[]) => {
   fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(downloads, null, 2));
 };
 
-// Track download
-export const trackDownload = (userId: string, bookId: number) => {
+// Generate session ID
+export const generateSessionId = (): string => {
+  return crypto.randomUUID();
+};
+
+// Update last login timestamp
+export const updateLastLogin = (userId: string): boolean => {
+  const users = getUsers();
+  const user = users.find(u => u.id === userId);
+
+  if (!user) {
+    return false;
+  }
+
+  user.lastLogin = new Date().toISOString();
+  saveUsers(users);
+  return true;
+};
+
+// Track download with enhanced parameters
+export const trackDownload = (
+  userId: string,
+  bookId: number,
+  options?: {
+    deviceType?: DeviceType;
+    uiMode?: UIMode;
+    sessionId?: string;
+    bookTitle?: string;
+    bookAuthor?: string;
+    genre?: string;
+  }
+) => {
   const downloads = getDownloads();
 
   // Check if already downloaded
@@ -135,6 +180,7 @@ export const trackDownload = (userId: string, bookId: number) => {
     userId,
     bookId,
     downloadedAt: new Date().toISOString(),
+    ...options, // Spread optional tracking data
   });
 
   saveDownloads(downloads);

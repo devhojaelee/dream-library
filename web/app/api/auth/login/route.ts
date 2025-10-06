@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserByUsername, verifyPassword, generateToken } from '@/lib/auth';
+import { getUserByUsername, verifyPassword, generateToken, updateLastLogin } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,6 +37,9 @@ export async function POST(request: NextRequest) {
     }
 
     const token = generateToken(user.id, rememberMe);
+
+    // Update last login timestamp
+    updateLastLogin(user.id);
 
     const response = NextResponse.json({
       success: true,
