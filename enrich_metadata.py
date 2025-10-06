@@ -402,15 +402,16 @@ class MetadataEnricher:
         if target_titles is not None:
             # We have download_status.json with downloadedFiles
             if len(target_titles) == 0:
-                # Empty list = no new downloads, skip processing
-                print("⏭️  No new files to process (downloadedFiles is empty), skipping enrichment")
-                return
-
-            epub_files = [f for f in all_epub_files if f.stem in target_titles]
-            print(f"🎯 Found {len(epub_files)} matching files out of {len(all_epub_files)} total")
-            if len(epub_files) == 0:
-                print("⚠️  No matching files found - all may have been already processed")
-                return
+                # Empty list = no NEW downloads this cycle
+                # But we should still process any unenriched files from previous cycles
+                print("📋 No new downloads this cycle - checking for unenriched files from previous cycles")
+                epub_files = all_epub_files
+            else:
+                epub_files = [f for f in all_epub_files if f.stem in target_titles]
+                print(f"🎯 Found {len(epub_files)} matching files out of {len(all_epub_files)} total")
+                if len(epub_files) == 0:
+                    print("⚠️  No matching files found - checking for unenriched files instead")
+                    epub_files = all_epub_files
         else:
             # No download_status.json, process all files (fallback)
             epub_files = all_epub_files
