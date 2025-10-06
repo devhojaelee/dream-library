@@ -507,19 +507,17 @@ export default function EinkHome() {
             }}>
               {/* First Line: Downloads + New Books Status */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                {encouragementMsg && (
-                  <span>이번 달 {getThisMonthDownloads()}권 다운로드</span>
-                )}
-                {encouragementMsg && downloadStatus && (
-                  <span style={{ opacity: 0.5 }}>|</span>
-                )}
+                <span>이번 달 {getThisMonthDownloads()}권 다운로드</span>
                 {downloadStatus && (
-                  <span>
-                    {downloadStatus.hours > 0
-                      ? `${downloadStatus.hours}시간`
-                      : `${downloadStatus.minutes}분`
-                    } 후 신작 10권 입고
-                  </span>
+                  <>
+                    <span style={{ opacity: 0.5 }}>|</span>
+                    <span>
+                      {downloadStatus.hours > 0
+                        ? `${downloadStatus.hours}시간`
+                        : `${downloadStatus.minutes}분`
+                      } 후 신작 10권 입고
+                    </span>
+                  </>
                 )}
               </div>
 
