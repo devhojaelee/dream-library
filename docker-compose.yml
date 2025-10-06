@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./books:/books:ro  # Read-only mount for web server
+      - ./books:/books  # Read-write mount for admin book editing
       - ./web/data:/app/data  # User data persistence
     environment:
       - NODE_ENV=production

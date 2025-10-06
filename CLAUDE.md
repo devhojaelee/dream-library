@@ -98,7 +98,7 @@ web/data/           # Persistent user data
 
 ### Docker Services
 1. **web**: Next.js app (port 3000)
-   - Read-only mount: `/books`
+   - Read-write mount: `/books` (for admin book editing)
    - Read-write mount: `/web/data`
 
 2. **crawler**: Automated Z-Library downloads
@@ -178,7 +178,7 @@ watchdog           # File system monitoring (enricher-watcher)
 ## Important Patterns
 
 ### Docker Volume Mounts
-- Web service: `/books` (read-only) - prevents accidental file modification
+- Web service: `/books` (read-write) - allows admin book editing
 - Crawler/enricher: `/books` (read-write) - allows file creation
 - User data: `/web/data` (persistent) - survives container restarts
 
