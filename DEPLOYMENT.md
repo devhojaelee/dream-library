@@ -112,7 +112,52 @@ Dream Library는 독립적으로 관리 가능한 두 개의 폴더로 구성됩
 
 ---
 
-## 개발 시 사용법
+## 관리 스크립트 사용법
+
+프로젝트 루트에 `manage.sh` 스크립트로 서비스를 쉽게 관리할 수 있습니다:
+
+### 기본 명령어
+
+```bash
+# 모든 서비스 시작
+./manage.sh start
+
+# Web만 시작
+./manage.sh start web
+
+# Crawler만 시작
+./manage.sh start crawler
+
+# 모든 서비스 중지
+./manage.sh stop
+
+# Web만 재시작
+./manage.sh restart web
+
+# 서비스 상태 확인
+./manage.sh status
+
+# 로그 확인
+./manage.sh logs web
+./manage.sh logs crawler
+
+# 개발 모드 (Web만 재빌드)
+./manage.sh dev
+```
+
+### 개발 워크플로우
+
+```bash
+# 1. 코드 수정
+# 2. Web만 빠르게 재시작
+./manage.sh dev
+
+# Crawler는 영향받지 않고 계속 실행됨 ✅
+```
+
+---
+
+## 수동 사용법 (스크립트 없이)
 
 ### Web만 재시작 (개발 중)
 ```bash
