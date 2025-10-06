@@ -1,0 +1,43 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CONTAINER_UID: ${CONTAINER_UID:-1001}
+        CONTAINER_GID: ${CONTAINER_GID:-1001}
+    container_name: dream-library-web
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../books:/books  # Shared with crawler
+      - ./data:/app/data  # User data persistence
+    environment:
+      - NODE_ENV=production
+      - BOOKS_DIR=/books
+      - EMAIL_USER=${EMAIL_USER:-hoje0711@naver.com}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD:-DSENDBPW412N}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+    restart: unless-stopped
+    networks:
+      - dream-library
+
+  backup-cron:
+    build:
+      context: ..
+      dockerfile: Dockerfile.backup-cron
+      args:
+        CONTAINER_UID: ${CONTAINER_UID:-1001}
+        CONTAINER_GID: ${CONTAINER_GID:-1001}
+    container_name: dream-library-backup-cron
+    volumes:
+      - ./data:/app/data
+    environment:
+      - TZ=Asia/Seoul
+    restart: unless-stopped
+    networks:
+      - dream-library
+
+networks:
+  dream-library:
+    driver: bridge

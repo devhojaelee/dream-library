@@ -1,0 +1,59 @@
+services:
+  crawler:
+    build:
+      context: .
+      dockerfile: Dockerfile.crawler
+      args:
+        CONTAINER_UID: ${CONTAINER_UID:-1001}
+        CONTAINER_GID: ${CONTAINER_GID:-1001}
+    container_name: dream-library-crawler
+    volumes:
+      - ../books:/app/books  # Shared with web
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ZLIBRARY_EMAIL=${ZLIBRARY_EMAIL}
+      - ZLIBRARY_PASSWORD=${ZLIBRARY_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - dream-library
+
+  enricher-watcher:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher-watcher
+      args:
+        CONTAINER_UID: ${CONTAINER_UID:-1001}
+        CONTAINER_GID: ${CONTAINER_GID:-1001}
+    container_name: dream-library-enricher-watcher
+    volumes:
+      - ../books:/app/books
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+    restart: unless-stopped
+    networks:
+      - dream-library
+
+  enricher:
+    build:
+      context: .
+      dockerfile: Dockerfile.enricher
+      args:
+        CONTAINER_UID: ${CONTAINER_UID:-1001}
+        CONTAINER_GID: ${CONTAINER_GID:-1001}
+    container_name: dream-library-enricher
+    volumes:
+      - ../books:/app/books
+    environment:
+      - PYTHONUNBUFFERED=1
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+    profiles:
+      - enricher
+    networks:
+      - dream-library
+
+networks:
+  dream-library:
+    driver: bridge
