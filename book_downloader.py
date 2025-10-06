@@ -330,10 +330,17 @@ def download_incremental():
                                 print(f"\n⏳ Download limit detected!")
 
                                 page_text = page.content()
+
+                                # English patterns
                                 tooltip_match = re.search(r'(\d+)h\s*(\d+)m', page_text, re.IGNORECASE)
-                                combined_match = re.search(r'(\d+)\s*hour[s]?\s+(\d+)\s*minute', page_text, re.IGNORECASE)
-                                hour_only_match = re.search(r'(\d+)\s*hour', page_text, re.IGNORECASE)
-                                minute_only_match = re.search(r'(\d+)\s*minute', page_text, re.IGNORECASE)
+                                combined_match = re.search(r'(\d+)\s*hour[s]?\s+(\d+)\s*minute[s]?', page_text, re.IGNORECASE)
+                                hour_only_match = re.search(r'(\d+)\s*hour[s]?', page_text, re.IGNORECASE)
+                                minute_only_match = re.search(r'(\d+)\s*minute[s]?', page_text, re.IGNORECASE)
+
+                                # Korean patterns
+                                korean_combined_match = re.search(r'(\d+)\s*시간\s+(\d+)\s*분', page_text)
+                                korean_hour_match = re.search(r'(\d+)\s*시간', page_text)
+                                korean_minute_match = re.search(r'(\d+)\s*분', page_text)
 
                                 total_wait_seconds = 0
                                 if tooltip_match:
@@ -346,14 +353,27 @@ def download_incremental():
                                     wait_minutes = int(combined_match.group(2))
                                     total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
                                     print(f"  ⏰ Need to wait {wait_hours}h {wait_minutes}m = {total_wait_seconds}s")
+                                elif korean_combined_match:
+                                    wait_hours = int(korean_combined_match.group(1))
+                                    wait_minutes = int(korean_combined_match.group(2))
+                                    total_wait_seconds = (wait_hours * 3600) + (wait_minutes * 60)
+                                    print(f"  ⏰ 대기 시간: {wait_hours}시간 {wait_minutes}분 = {total_wait_seconds}초")
                                 elif hour_only_match:
                                     wait_hours = int(hour_only_match.group(1))
                                     total_wait_seconds = wait_hours * 3600
                                     print(f"  ⏰ Need to wait {wait_hours}h = {total_wait_seconds}s")
+                                elif korean_hour_match:
+                                    wait_hours = int(korean_hour_match.group(1))
+                                    total_wait_seconds = wait_hours * 3600
+                                    print(f"  ⏰ 대기 시간: {wait_hours}시간 = {total_wait_seconds}초")
                                 elif minute_only_match:
                                     wait_minutes = int(minute_only_match.group(1))
                                     total_wait_seconds = wait_minutes * 60
                                     print(f"  ⏰ Need to wait {wait_minutes}m = {total_wait_seconds}s")
+                                elif korean_minute_match:
+                                    wait_minutes = int(korean_minute_match.group(1))
+                                    total_wait_seconds = wait_minutes * 60
+                                    print(f"  ⏰ 대기 시간: {wait_minutes}분 = {total_wait_seconds}초")
 
                                 if total_wait_seconds > 0:
                                     # Save download status for web UI and enricher
