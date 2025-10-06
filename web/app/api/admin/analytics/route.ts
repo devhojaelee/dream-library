@@ -114,14 +114,30 @@ export async function GET() {
     const approvedUsers = users.filter(u => u.approved);
     const totalUsers = approvedUsers.length;
 
+    // DAU: Users with login OR download activity in last 24 hours
     const dailyActiveUsers = approvedUsers.filter(u => {
-      if (!u.lastLogin) return false;
-      return new Date(u.lastLogin) > oneDayAgo;
+      // Check lastLogin
+      if (u.lastLogin && new Date(u.lastLogin) > oneDayAgo) return true;
+
+      // Check download activity
+      const userHasRecentDownload = downloads.some(d =>
+        d.userId === u.id && new Date(d.downloadedAt) > oneDayAgo
+      );
+
+      return userHasRecentDownload;
     }).length;
 
+    // MAU: Users with login OR download activity in last 30 days
     const monthlyActiveUsers = approvedUsers.filter(u => {
-      if (!u.lastLogin) return false;
-      return new Date(u.lastLogin) > oneMonthAgo;
+      // Check lastLogin
+      if (u.lastLogin && new Date(u.lastLogin) > oneMonthAgo) return true;
+
+      // Check download activity
+      const userHasRecentDownload = downloads.some(d =>
+        d.userId === u.id && new Date(d.downloadedAt) > oneMonthAgo
+      );
+
+      return userHasRecentDownload;
     }).length;
 
     const activeUserRate = totalUsers > 0 ? (monthlyActiveUsers / totalUsers) * 100 : 0;
@@ -155,6 +171,65 @@ export async function GET() {
       byUIMode[mode] = (byUIMode[mode] || 0) + 1;
     });
 
+    // Auto-fill missing bookTitle in downloads (one-time migration)
+    let downloadsUpdated = false;
+    const downloadsWithMissingTitles = downloads.filter(d => !d.bookTitle);
+
+    if (downloadsWithMissingTitles.length > 0) {
+      console.log(`[Analytics] Found ${downloadsWithMissingTitles.length} downloads without bookTitle, loading metadata...`);
+
+      // Load book metadata from filesystem
+      const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
+      const metadataDir = path.join(booksDir, 'metadata');
+      const bookIdToMetadata: Record<number, { title: string; author?: string }> = {};
+
+      try {
+        if (fs.existsSync(booksDir)) {
+          const files = fs.readdirSync(booksDir);
+          const epubFiles = files.filter(file => file.endsWith('.epub'));
+
+          epubFiles.forEach((filename, index) => {
+            const bookId = index + 1;
+            const title = filename.replace('.epub', '');
+            const metadataPath = path.join(metadataDir, `${title}.json`);
+
+            let metadata: Record<string, string> = {};
+            if (fs.existsSync(metadataPath)) {
+              try {
+                const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
+                metadata = JSON.parse(metadataContent);
+              } catch (error) {
+                console.error(`[Analytics] Failed to read metadata for ${filename}:`, error);
+              }
+            }
+
+            bookIdToMetadata[bookId] = {
+              title: metadata.title || title,
+              author: metadata.author,
+            };
+          });
+
+          // Update downloads with missing bookTitle
+          downloads.forEach(d => {
+            if (!d.bookTitle && bookIdToMetadata[d.bookId]) {
+              d.bookTitle = bookIdToMetadata[d.bookId].title;
+              d.bookAuthor = d.bookAuthor || bookIdToMetadata[d.bookId].author;
+              downloadsUpdated = true;
+            }
+          });
+
+          // Save updated downloads.json
+          if (downloadsUpdated) {
+            const DOWNLOADS_FILE = path.join(process.cwd(), 'data', 'downloads.json');
+            fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(downloads, null, 2));
+            console.log(`[Analytics] Updated downloads.json with book metadata`);
+          }
+        }
+      } catch (error) {
+        console.error('[Analytics] Failed to load book metadata:', error);
+      }
+    }
+
     // Popular Books
     const bookDownloadCounts: Record<number, {
       count: number;
@@ -176,7 +251,7 @@ export async function GET() {
     const popularBooks = Object.entries(bookDownloadCounts)
       .map(([bookId, data]) => ({
         bookId: parseInt(bookId),
-        bookTitle: data.title,
+        bookTitle: data.title || `책 ID ${bookId}`,
         bookAuthor: data.author,
         downloadCount: data.count,
       }))
@@ -234,47 +309,95 @@ export async function GET() {
     };
 
     // 2. RETENTION METRICS
-    const d1Retention = approvedUsers.filter(u => {
-      if (!u.createdAt || !u.lastLogin) return false;
-      const signupDate = new Date(u.createdAt);
-      const lastLoginDate = new Date(u.lastLogin);
-      const daysSinceSignup = daysBetween(signupDate, now);
-      const daysBetweenSignupAndLogin = daysBetween(signupDate, lastLoginDate);
-      return daysSinceSignup >= 1 && daysBetweenSignupAndLogin <= 1;
-    }).length;
-
-    const d7Retention = approvedUsers.filter(u => {
-      if (!u.createdAt || !u.lastLogin) return false;
-      const signupDate = new Date(u.createdAt);
-      const lastLoginDate = new Date(u.lastLogin);
-      const daysSinceSignup = daysBetween(signupDate, now);
-      const daysBetweenSignupAndLogin = daysBetween(signupDate, lastLoginDate);
-      return daysSinceSignup >= 7 && daysBetweenSignupAndLogin <= 7;
-    }).length;
-
-    const d30Retention = approvedUsers.filter(u => {
-      if (!u.createdAt || !u.lastLogin) return false;
-      const signupDate = new Date(u.createdAt);
-      const lastLoginDate = new Date(u.lastLogin);
-      const daysSinceSignup = daysBetween(signupDate, now);
-      const daysBetweenSignupAndLogin = daysBetween(signupDate, lastLoginDate);
-      return daysSinceSignup >= 30 && daysBetweenSignupAndLogin <= 30;
-    }).length;
-
+    // D1 Retention: Users who were active on Day 1 after signup
     const usersOlderThan1Day = approvedUsers.filter(u =>
       u.createdAt && daysBetween(new Date(u.createdAt), now) >= 1
-    ).length;
+    );
+
+    const d1RetainedUsers = usersOlderThan1Day.filter(u => {
+      if (!u.createdAt) return false;
+      const signupDate = new Date(u.createdAt);
+
+      // Check if user had activity (login or download) on Day 1 (24-48 hours after signup)
+      const day1Start = new Date(signupDate.getTime() + 24 * 60 * 60 * 1000);
+      const day1End = new Date(signupDate.getTime() + 48 * 60 * 60 * 1000);
+
+      // Check login activity
+      if (u.lastLogin) {
+        const lastLogin = new Date(u.lastLogin);
+        if (lastLogin >= day1Start && lastLogin < day1End) return true;
+      }
+
+      // Check download activity
+      const hasDay1Download = downloads.some(d => {
+        if (d.userId !== u.id) return false;
+        const downloadDate = new Date(d.downloadedAt);
+        return downloadDate >= day1Start && downloadDate < day1End;
+      });
+
+      return hasDay1Download;
+    }).length;
+
+    // D7 Retention: Users who were active on Day 7 after signup
     const usersOlderThan7Days = approvedUsers.filter(u =>
       u.createdAt && daysBetween(new Date(u.createdAt), now) >= 7
-    ).length;
+    );
+
+    const d7RetainedUsers = usersOlderThan7Days.filter(u => {
+      if (!u.createdAt) return false;
+      const signupDate = new Date(u.createdAt);
+
+      // Check if user had activity within Day 1-7 (more lenient for D7)
+      const day7End = new Date(signupDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      // Check login activity
+      if (u.lastLogin) {
+        const lastLogin = new Date(u.lastLogin);
+        if (lastLogin <= day7End) return true;
+      }
+
+      // Check download activity
+      const hasWeek1Download = downloads.some(d => {
+        if (d.userId !== u.id) return false;
+        const downloadDate = new Date(d.downloadedAt);
+        return downloadDate <= day7End;
+      });
+
+      return hasWeek1Download;
+    }).length;
+
+    // D30 Retention: Users who were active within 30 days after signup
     const usersOlderThan30Days = approvedUsers.filter(u =>
       u.createdAt && daysBetween(new Date(u.createdAt), now) >= 30
-    ).length;
+    );
+
+    const d30RetainedUsers = usersOlderThan30Days.filter(u => {
+      if (!u.createdAt) return false;
+      const signupDate = new Date(u.createdAt);
+
+      // Check if user had activity within Day 1-30
+      const day30End = new Date(signupDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      // Check login activity
+      if (u.lastLogin) {
+        const lastLogin = new Date(u.lastLogin);
+        if (lastLogin <= day30End) return true;
+      }
+
+      // Check download activity
+      const hasMonth1Download = downloads.some(d => {
+        if (d.userId !== u.id) return false;
+        const downloadDate = new Date(d.downloadedAt);
+        return downloadDate <= day30End;
+      });
+
+      return hasMonth1Download;
+    }).length;
 
     const retentionMetrics = {
-      d1Retention: usersOlderThan1Day > 0 ? Math.round((d1Retention / usersOlderThan1Day) * 100) : 0,
-      d7Retention: usersOlderThan7Days > 0 ? Math.round((d7Retention / usersOlderThan7Days) * 100) : 0,
-      d30Retention: usersOlderThan30Days > 0 ? Math.round((d30Retention / usersOlderThan30Days) * 100) : 0,
+      d1Retention: usersOlderThan1Day.length > 0 ? Math.round((d1RetainedUsers / usersOlderThan1Day.length) * 100) : 0,
+      d7Retention: usersOlderThan7Days.length > 0 ? Math.round((d7RetainedUsers / usersOlderThan7Days.length) * 100) : 0,
+      d30Retention: usersOlderThan30Days.length > 0 ? Math.round((d30RetainedUsers / usersOlderThan30Days.length) * 100) : 0,
     };
 
     // 3. COHORT ANALYSIS (Last 8 weeks)

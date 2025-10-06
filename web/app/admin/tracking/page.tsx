@@ -993,21 +993,41 @@ export default function TrackingPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-2">기기 선호도</div>
-                    {Object.entries(selectedUser.devicePreferences).map(([device, count]) => (
-                      <div key={device} className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-700">{device}</span>
-                        <span className="font-semibold text-gray-900">{count}회</span>
-                      </div>
-                    ))}
+                    {Object.entries(selectedUser.devicePreferences).map(([device, count]) => {
+                      const deviceMap: Record<string, string> = {
+                        'desktop': 'PC',
+                        'mobile': '모바일',
+                        'tablet': '태블릿',
+                        'eink': '전자책 단말기',
+                        'unknown': '알 수 없음'
+                      };
+                      const deviceText = deviceMap[device] || device;
+
+                      return (
+                        <div key={device} className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-gray-700">{deviceText}</span>
+                          <span className="font-semibold text-gray-900">{count}회</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="p-3 bg-gray-50 rounded-lg">
                     <div className="text-xs text-gray-600 mb-2">UI 모드</div>
-                    {Object.entries(selectedUser.uiModePreferences).map(([mode, count]) => (
-                      <div key={mode} className="flex items-center justify-between text-sm mb-1">
-                        <span className="text-gray-700">{mode}</span>
-                        <span className="font-semibold text-gray-900">{count}회</span>
-                      </div>
-                    ))}
+                    {Object.entries(selectedUser.uiModePreferences).map(([mode, count]) => {
+                      const uiModeMap: Record<string, string> = {
+                        'standard': '일반 화면',
+                        'eink': '전자책 모드',
+                        'unknown': '알 수 없음'
+                      };
+                      const modeText = uiModeMap[mode] || mode;
+
+                      return (
+                        <div key={mode} className="flex items-center justify-between text-sm mb-1">
+                          <span className="text-gray-700">{modeText}</span>
+                          <span className="font-semibold text-gray-900">{count}회</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

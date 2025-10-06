@@ -275,9 +275,9 @@ export default function Home() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       filteredBooks = filteredBooks.filter(book => {
-        if (!book.downloadedAt) return false;
-        const downloadedDate = new Date(book.downloadedAt);
-        return downloadedDate > sevenDaysAgo;
+        if (!book.addedDate) return false;
+        const addedDate = new Date(book.addedDate);
+        return addedDate > sevenDaysAgo;
       });
     }
 
@@ -371,9 +371,9 @@ export default function Home() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       filteredBooks = filteredBooks.filter(book => {
-        if (!book.downloadedAt) return false;
-        const downloadedDate = new Date(book.downloadedAt);
-        return downloadedDate > sevenDaysAgo;
+        if (!book.addedDate) return false;
+        const addedDate = new Date(book.addedDate);
+        return addedDate > sevenDaysAgo;
       });
     }
 
