@@ -123,23 +123,18 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
     // Clear review status when book is edited (신고 마크 해제)
-    try {
-      const dataDir = path.join(process.cwd(), 'data');
-      const reviewStatusPath = path.join(dataDir, 'review_status.json');
+    const dataDir = path.join(process.cwd(), 'data');
+    const reviewStatusPath = path.join(dataDir, 'review_status.json');
 
-      if (fs.existsSync(reviewStatusPath)) {
-        const reviewStatus = JSON.parse(fs.readFileSync(reviewStatusPath, 'utf-8'));
+    if (fs.existsSync(reviewStatusPath)) {
+      const reviewStatus = JSON.parse(fs.readFileSync(reviewStatusPath, 'utf-8'));
 
-        // Remove this book from review list
-        if (reviewStatus[filename]) {
-          delete reviewStatus[filename];
-          fs.writeFileSync(reviewStatusPath, JSON.stringify(reviewStatus, null, 2));
-          console.log(`Cleared review status for: ${filename}`);
-        }
+      // Remove this book from review list
+      if (reviewStatus[filename]) {
+        delete reviewStatus[filename];
+        fs.writeFileSync(reviewStatusPath, JSON.stringify(reviewStatus, null, 2));
+        console.log(`Cleared review status for: ${filename}`);
       }
-    } catch (err) {
-      console.error('Failed to clear review status:', err);
-      // Don't fail the entire request if review status update fails
     }
 
     return NextResponse.json({
