@@ -382,7 +382,8 @@ class MetadataEnricher:
             try:
                 with open(status_path, 'r', encoding='utf-8') as f:
                     status_data = json.load(f)
-                    if 'downloadedFiles' in status_data and status_data['downloadedFiles']:
+                    if 'downloadedFiles' in status_data:
+                        # Empty list is valid - means 0 new downloads
                         target_titles = set(status_data['downloadedFiles'])
                         print(f"📋 Processing {len(target_titles)} newly downloaded files from download_status.json")
                         print("=" * 60)
