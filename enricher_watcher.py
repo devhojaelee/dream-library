@@ -8,12 +8,13 @@ import time
 import subprocess
 import os
 import json
+import threading
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 class DownloadStatusHandler(FileSystemEventHandler):
     def __init__(self):
-        self.processing = False
+        self.lock = threading.Lock()
         self.last_processed_timestamp = None  # Track last processed timestamp
 
     def on_created(self, event):
@@ -27,31 +28,31 @@ class DownloadStatusHandler(FileSystemEventHandler):
             self.trigger_enrichment()
 
     def trigger_enrichment(self):
-        if self.processing:
+        # Try to acquire lock (non-blocking)
+        if not self.lock.acquire(blocking=False):
             print("⏭️  Already processing, skipping duplicate trigger")
             return
 
-        # Check if this is a duplicate trigger (same timestamp)
-        # Atomic rename guarantees complete file, no race condition
-        status_file = '/app/books/download_status.json'
-
         try:
-            with open(status_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                current_timestamp = data.get('waitUntil')
+            # Check if this is a duplicate trigger (same timestamp)
+            # Atomic rename guarantees complete file, no race condition
+            status_file = '/app/books/download_status.json'
 
-                if current_timestamp == self.last_processed_timestamp:
-                    print(f"⏭️  Already processed timestamp {current_timestamp}, ignoring")
-                    return
+            try:
+                with open(status_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    current_timestamp = data.get('waitUntil')
 
-                # Update last processed timestamp
-                self.last_processed_timestamp = current_timestamp
-        except Exception as e:
-            print(f"⚠️  Could not read status file: {e}")
-            return  # Skip this trigger
+                    if current_timestamp == self.last_processed_timestamp:
+                        print(f"⏭️  Already processed timestamp {current_timestamp}, ignoring")
+                        return
 
-        self.processing = True
-        try:
+                    # Update last processed timestamp
+                    self.last_processed_timestamp = current_timestamp
+            except Exception as e:
+                print(f"⚠️  Could not read status file: {e}")
+                return  # Skip this trigger
+
             print("\n" + "="*70)
             print("⏳ Download limit detected!")
             print("="*70)
@@ -86,7 +87,8 @@ class DownloadStatusHandler(FileSystemEventHandler):
             print("="*70)
 
         finally:
-            self.processing = False
+            # Always release lock, even on exception or early return
+            self.lock.release()
 
 def main():
     watch_dir = '/app/books'
