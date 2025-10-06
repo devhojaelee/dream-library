@@ -70,6 +70,7 @@ export default function Home() {
     if (width >= 1280) columns = 5; // xl
     else if (width >= 1024) columns = 4; // lg
     else if (width >= 768) columns = 3; // md
+    else if (width >= 360) columns = 3; // 6-8인치 액정 (360px 이상)
     else columns = 2; // default
 
     const rows = 5; // Show ~5 rows worth of books
@@ -81,7 +82,7 @@ export default function Home() {
 
   useEffect(() => {
     // Calculate initial books per page based on viewport
-    const initialCount = calculateBooksPerPage();
+    calculateBooksPerPage();
 
     // Recalculate on window resize
     const handleResize = () => {

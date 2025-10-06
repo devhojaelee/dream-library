@@ -63,6 +63,7 @@ export default function EinkHome() {
     if (width >= 1024) columns = 5; // large screens
     else if (width >= 768) columns = 4; // tablets
     else if (width >= 480) columns = 3; // larger phones
+    else if (width >= 360) columns = 3; // 6-8인치 액정 (360px 이상)
     else columns = 2; // small phones
 
     const rows = 3; // Show ~3 rows for E-ink (less scrolling)

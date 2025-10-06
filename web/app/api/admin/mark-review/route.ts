@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
+interface ReviewStatus {
+  [filename: string]: boolean; // filename -> needs_review
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { filename, needsReview } = await request.json();
@@ -13,28 +17,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const booksDir = process.env.BOOKS_DIR || path.join(process.cwd(), '..', 'books');
-    const metadataDir = path.join(booksDir, 'metadata');
+    // Use writable data directory instead of read-only books directory
+    const dataDir = path.join(process.cwd(), 'data');
+    const reviewStatusPath = path.join(dataDir, 'review_status.json');
 
-    const baseFilename = filename.replace('.epub', '');
-    const metadataPath = path.join(metadataDir, `${baseFilename}.json`);
-
-    // 기존 메타데이터 읽기
-    let metadata: Record<string, string | boolean | number> = {};
-    if (fs.existsSync(metadataPath)) {
-      const metadataContent = fs.readFileSync(metadataPath, 'utf-8');
-      metadata = JSON.parse(metadataContent);
+    // Ensure data directory exists
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    // needs_review 필드 업데이트
-    metadata.needs_review = needsReview;
-
-    // 메타데이터 저장
-    if (!fs.existsSync(metadataDir)) {
-      fs.mkdirSync(metadataDir, { recursive: true });
+    // Read existing review status
+    let reviewStatus: ReviewStatus = {};
+    if (fs.existsSync(reviewStatusPath)) {
+      const content = fs.readFileSync(reviewStatusPath, 'utf-8');
+      reviewStatus = JSON.parse(content);
     }
 
-    fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+    // Update review status
+    if (needsReview) {
+      reviewStatus[filename] = true;
+    } else {
+      delete reviewStatus[filename]; // Remove if not needed for review
+    }
+
+    // Save review status
+    fs.writeFileSync(reviewStatusPath, JSON.stringify(reviewStatus, null, 2));
 
     return NextResponse.json({
       success: true,
