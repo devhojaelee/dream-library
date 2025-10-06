@@ -395,10 +395,10 @@ export default function AnalyticsPage() {
                     <div key={book.bookId} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
                       <div className="text-lg font-bold text-gray-400 w-6">{idx + 1}</div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="text-sm font-medium text-gray-900 line-clamp-2 md:line-clamp-1">
                           {book.bookTitle || `책 ID ${book.bookId}`}
                         </div>
-                        <div className="text-xs text-gray-500">{book.bookAuthor || '저자 미상'}</div>
+                        <div className="text-xs text-gray-500 truncate">{book.bookAuthor || '저자 미상'}</div>
                       </div>
                       <div className="text-sm font-semibold text-indigo-600">{book.downloadCount}회</div>
                     </div>
@@ -464,10 +464,10 @@ export default function AnalyticsPage() {
                     <div key={book.bookId} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
                       <div className="text-lg font-bold text-indigo-600 w-6">{idx + 1}</div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-semibold text-gray-900 truncate">
+                        <div className="text-xs font-semibold text-gray-900 line-clamp-2">
                           {book.bookTitle || `책 ID ${book.bookId}`}
                         </div>
-                        <div className="text-xs text-gray-500">{book.bookAuthor || '저자 미상'}</div>
+                        <div className="text-xs text-gray-500 truncate">{book.bookAuthor || '저자 미상'}</div>
                       </div>
                       <div className="text-sm font-bold text-indigo-600 whitespace-nowrap">{book.downloadCount}</div>
                     </div>
