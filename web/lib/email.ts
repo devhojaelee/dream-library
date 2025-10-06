@@ -6,8 +6,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true, // SSL
   auth: {
-    user: process.env.EMAIL_USER || 'hoje0711@naver.com',
-    pass: process.env.EMAIL_PASSWORD || 'DSENDBPW412N',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
