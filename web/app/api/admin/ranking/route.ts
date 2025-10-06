@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getUsers, getDownloads } from '@/lib/auth';
 
 interface RankingUser {
@@ -9,7 +9,7 @@ interface RankingUser {
   role: string;
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // TODO: 어드민 인증 확인 로직 추가 필요 (현재는 모든 요청 허용)
 
   try {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     // 랭킹 데이터 생성
     const rankings: RankingUser[] = users
-      .filter((u) => u.approved && u.role !== 'pending') // 승인된 사용자만 (pending 제외)
+      .filter((u) => u.approved) // 승인된 사용자만 (approved: true)
       .map((u) => {
         // 해당 사용자의 다운로드 필터링
         const userDownloads = allDownloads.filter((d) => d.userId === u.id);

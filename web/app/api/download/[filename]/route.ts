@@ -36,7 +36,7 @@ export async function GET(
     // 다운로드 추적 with enhanced metadata
     if (bookId) {
       // Read book metadata if available
-      let bookMetadata: { title?: string; author?: string; genre?: string } = {};
+      let bookMetadata: { bookTitle?: string; bookAuthor?: string; genre?: string } = {};
       try {
         const metadataFilename = filename.replace('.epub', '.json');
         const metadataPath = path.join(booksDir, 'metadata', metadataFilename);

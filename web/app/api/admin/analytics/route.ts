@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getUsers, getDownloads } from '@/lib/auth';
 
 interface AnalyticsData {
@@ -28,7 +28,7 @@ interface AnalyticsData {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   // TODO: Add admin authentication check
 
   try {
