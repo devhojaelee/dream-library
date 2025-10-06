@@ -184,6 +184,31 @@ export const rejectUser = (userId: string): boolean => {
   }
 
   saveUsers(filteredUsers);
+
+  // Cascade delete: Remove user's downloads
+  const downloads = getDownloads();
+  const filteredDownloads = downloads.filter(d => d.userId !== userId);
+  saveDownloads(filteredDownloads);
+
+  return true;
+};
+
+// Delete user (for admin delete user function)
+export const deleteUser = (userId: string): boolean => {
+  const users = getUsers();
+  const filteredUsers = users.filter(u => u.id !== userId);
+
+  if (filteredUsers.length === users.length) {
+    return false; // User not found
+  }
+
+  saveUsers(filteredUsers);
+
+  // Cascade delete: Remove user's downloads
+  const downloads = getDownloads();
+  const filteredDownloads = downloads.filter(d => d.userId !== userId);
+  saveDownloads(filteredDownloads);
+
   return true;
 };
 

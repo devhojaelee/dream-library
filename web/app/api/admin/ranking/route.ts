@@ -1,17 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  downloadHistory?: { bookId: number; downloadedAt: string }[];
-}
+import { getUsers, getDownloads } from '@/lib/auth';
 
 interface RankingUser {
   username: string;
@@ -25,9 +13,9 @@ export async function GET(request: NextRequest) {
   // TODO: 어드민 인증 확인 로직 추가 필요 (현재는 모든 요청 허용)
 
   try {
-    // users.json 읽기
-    const usersData = fs.readFileSync(USERS_FILE, 'utf-8');
-    const users: User[] = JSON.parse(usersData);
+    // users.json과 downloads.json 읽기
+    const users = getUsers();
+    const allDownloads = getDownloads();
 
     // 이번 달 계산
     const now = new Date();
@@ -35,13 +23,14 @@ export async function GET(request: NextRequest) {
 
     // 랭킹 데이터 생성
     const rankings: RankingUser[] = users
-      .filter((u) => u.role !== 'pending') // pending 사용자 제외
+      .filter((u) => u.approved && u.role !== 'pending') // 승인된 사용자만 (pending 제외)
       .map((u) => {
-        const downloadHistory = u.downloadHistory || [];
-        const totalDownloads = downloadHistory.length;
+        // 해당 사용자의 다운로드 필터링
+        const userDownloads = allDownloads.filter((d) => d.userId === u.id);
+        const totalDownloads = userDownloads.length;
 
         // 이번 달 다운로드 수 계산
-        const thisMonthDownloads = downloadHistory.filter((d) => {
+        const thisMonthDownloads = userDownloads.filter((d) => {
           const date = new Date(d.downloadedAt);
           const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           return monthKey === thisMonth;
