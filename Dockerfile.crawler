@@ -49,10 +49,7 @@ COPY --chown=nextjs:nodejs book_downloader.py .
 # Switch back to nextjs
 USER nextjs
 
-# Create books directory
-RUN mkdir -p /app/books/covers /app/books/metadata
-
-# Volume mount point
+# Volume mount point (directory will be created by docker-compose mount)
 VOLUME ["/app/books"]
 
 CMD ["python", "book_downloader.py"]
